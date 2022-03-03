@@ -1,14 +1,24 @@
 import torch
 import cv2
 import albumentations as A
+from albumentations.pytorch.transforms import ToTensorV2
 import pathlib
 from sklearn.model_selection import train_test_split
 
 class Dataset(torch.utils.data.Dataset):
-    def __init__(self,data_pairs,image_rgb,transform):
+    def __init__(self,data_pairs,image_rgb,transform,dtype):
         self.data_pairs = data_pairs
         self.image_rgb = image_rgb
-        self.transform = transform
+        if dtype == 'float' or dtype == float:
+            self.transform = A.Compose([
+                transform,
+                A.ToFloat(p=1),
+                ToTensorV2(p=1)],p=1)
+        else:
+            assert dtype == 'int' or dtype == int
+            self.transform = A.Compose([
+                transform,
+                ToTensorV2(p=1)],p=1)
         
     def __getitem__(self,index):
         image_path, mask_path = self.data_pairs[index]
@@ -44,10 +54,13 @@ class DataLoader:
         shuffle,
         num_workers,
         pin_memory,
-        prefetch_factor):
+        prefetch_factor,
+        dtype):
         
         self.data_pairs = list(zip(images_path,masks_path))
         self.image_rgb = image_rgb
+        if transform is None:
+            transform = A.NoOp(p=1)
         self.transform = transform
         if preprocess is None:
             preprocess = A.NoOp(p=1)
@@ -57,10 +70,11 @@ class DataLoader:
         self.num_workers = num_workers
         self.pin_memory = pin_memory
         self.prefetch_factor = prefetch_factor
+        self.dtype = dtype
         
     def __call__(self,epoch):
-        transform = A.Compose([self.transform(epoch),self.preprocess],p=1)
-        dataset = Dataset(self.data_pairs,self.image_rgb,transform)
+        transform = A.Sequential([self.transform(epoch),self.preprocess],p=1)
+        dataset = Dataset(self.data_pairs,self.image_rgb,transform,self.dtype)
         dataloader = torch.utils.data.DataLoader(
             dataset,
             batch_size=self.batch_size,
@@ -84,7 +98,8 @@ class TrainDataLoader:
         preprocess,
         num_workers,
         pin_memory,
-        prefetch_factor):
+        prefetch_factor,
+        dtype):
         
         images_path = list(pathlib.Path(images_root).rglob('*.png'))
         masks_path = list(pathlib.Path(masks_root).rglob('*.png'))
@@ -104,6 +119,7 @@ class TrainDataLoader:
         self.num_workers = num_workers
         self.pin_memory = pin_memory
         self.prefetch_factor = prefetch_factor
+        self.dtype = dtype
         
         self.is_match = False
         assert len(images_path) == len(masks_path), f'the number images is : {len(images_path)}, while the number of masks is {len(masks_path)}, and they do not match'
@@ -130,7 +146,8 @@ class TrainDataLoader:
             shuffle = True,
             num_workers = self.num_workers,
             pin_memory = self.pin_memory,
-            prefetch_factor = self.prefetch_factor)
+            prefetch_factor = self.prefetch_factor,
+            dtype = self.dtype)
         
         validation_dataset = DataLoader(
             images_path = validation_images_path,
@@ -142,9 +159,23 @@ class TrainDataLoader:
             shuffle = False,
             num_workers = self.num_workers,
             pin_memory = self.pin_memory,
-            prefetch_factor = self.prefetch_factor)
+            prefetch_factor = self.prefetch_factor,
+            dtype = self.dtype)
         
-        return train_dataset, validation_dataset
+        validation_dataset_wo_arg = DataLoader(
+            images_path = validation_images_path,
+            masks_path = validation_masks_path,
+            image_rgb = self.image_rgb,
+            transform = None,
+            preprocess = self.preprocess,
+            batch_size = self.validation_batch_size,
+            shuffle = False,
+            num_workers = self.num_workers,
+            pin_memory = self.pin_memory,
+            prefetch_factor = self.prefetch_factor,
+            dtype = self.dtype)
+        
+        return train_dataset, validation_dataset , validation_dataset_wo_arg
     
 # class Images:
 #     def __init__(self, images_path, transform, preprocess, ):
