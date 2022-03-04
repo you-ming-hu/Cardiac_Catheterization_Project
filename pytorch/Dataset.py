@@ -37,7 +37,7 @@ class Dataset(torch.utils.data.Dataset):
         sample = self.transform(image=image,mask=mask)
         image = sample['image']
         mask = sample['mask']
-        return image, mask
+        return image, mask, image_path
     
     def __len__(self):
         return len(self.data_pairs)
@@ -51,6 +51,7 @@ class DataLoader:
         transform,
         preprocess,
         batch_size,
+        drop_last,
         shuffle,
         num_workers,
         pin_memory,
@@ -66,11 +67,15 @@ class DataLoader:
             preprocess = A.NoOp(p=1)
         self.preprocess = preprocess
         self.batch_size = batch_size
+        self.drop_last = drop_last
         self.shuffle = shuffle
         self.num_workers = num_workers
         self.pin_memory = pin_memory
         self.prefetch_factor = prefetch_factor
         self.dtype = dtype
+    
+    def __len__(self):
+        return len(self.data_pairs)
         
     def __call__(self,epoch):
         transform = A.Sequential([self.transform(epoch),self.preprocess],p=1)
@@ -78,6 +83,7 @@ class DataLoader:
         dataloader = torch.utils.data.DataLoader(
             dataset,
             batch_size=self.batch_size,
+            drop_last=self.drop_last,
             shuffle=self.shuffle,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
@@ -143,6 +149,7 @@ class TrainDataLoader:
             transform = self.train_transform,
             preprocess = self.preprocess,
             batch_size = self.train_batch_size,
+            drop_last = False,
             shuffle = True,
             num_workers = self.num_workers,
             pin_memory = self.pin_memory,
@@ -156,6 +163,7 @@ class TrainDataLoader:
             transform = self.validation_transform,
             preprocess = self.preprocess,
             batch_size = self.validation_batch_size,
+            drop_last = False,
             shuffle = False,
             num_workers = self.num_workers,
             pin_memory = self.pin_memory,
@@ -169,6 +177,7 @@ class TrainDataLoader:
             transform = None,
             preprocess = self.preprocess,
             batch_size = self.validation_batch_size,
+            drop_last = False,
             shuffle = False,
             num_workers = self.num_workers,
             pin_memory = self.pin_memory,

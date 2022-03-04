@@ -11,9 +11,9 @@ class Unet(torch.nn.Module):
         in_channels,
         activation,
         segmentation_classes,
-        main_head,
+        segmentation_head,
         classfy_classes,
-        aux_head,
+        classfy_head,
         trainable_backbone):
         
         super().__init__()
@@ -23,29 +23,45 @@ class Unet(torch.nn.Module):
             in_channels = in_channels,
             activation = activation,
             segmentation_classes = segmentation_classes,
-            main_head = main_head,
+            segmentation_head = segmentation_head,
             classfy_classes = classfy_classes,
-            aux_head = aux_head,
+            classfy_head = classfy_head,
             trainable_backbone = trainable_backbone)
         
-        
-        if aux_head is not None:
-            aux_params = {'classes':classfy_classes}
+        if classfy_head != None:
+            classfy_params = {'classes':classfy_classes}
         else:
-            aux_params = None
+            classfy_params = None
             
         self.backbone = smp.Unet(
             encoder_name = encoder_name, 
             encoder_weights = encoder_weights, 
             in_channels = in_channels, 
-            classes = segmentation_classes, 
+            classes = segmentation_classes,
             activation = activation,
-            aux_params = aux_params})
+            aux_params = classfy_params)
         
-        trainable_backbone
+        if not trainable_backbone:
+            for param in self.backbone.parameters():
+                param.requires_grad = False
+                
+            for param in self.backbone.segmentation_head.parameters():
+                param.requires_grad = True
+                
+            if classfy_head != None:
+                for param in self.backbone.classification_head.parameters():
+                    param.requires_grad = True
         
-        self.main_head = main_head
-        self.aux_head = aux_head
+        self.segmentation_head = segmentation_head
+        self.classfy_head = classfy_head
         
     def forwrd(self,x):
-        pass
+        if self.classfy_head != None:
+            segmentation, classify = self.backbone(x)
+            segmentation = self.segmentation_head(segmentation)
+            classify = self.classfy_head(classify)
+            return segmentation, classify
+        else:
+            segmentation = self.backbone(x)
+            segmentation = self.segmentation_head(segmentation)
+            return segmentation

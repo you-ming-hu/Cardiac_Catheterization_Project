@@ -19,7 +19,7 @@ class FCN_ResNet(torch.nn.Module):
             main_head = main_head,
             aux_head = aux_head)
         
-        if aux_head is not None:
+        if aux_head != None:
             aux_loss = True
         
         self.backbone = models.segmentation.fcn_resnet50(pretrained=pretrained,num_classes=num_classes,aux_loss=aux_loss)
@@ -30,7 +30,7 @@ class FCN_ResNet(torch.nn.Module):
             for param in self.backbone.classifier[-1].parameters():
                 param.requires_grad = True
                 
-            if aux_head is not None:
+            if aux_head != None:
                 for param in self.backbone.aux_classifier[-1].parameters():
                     param.requires_grad = True
         
@@ -41,7 +41,7 @@ class FCN_ResNet(torch.nn.Module):
         x = self.backbone(x)
         out = x['out']
         out = self.main_head(out)
-        if self.aux_head is not None:
+        if self.aux_head != None:
             aux = x['aux']
             aux = self.aux_head(aux)
             return out, aux
