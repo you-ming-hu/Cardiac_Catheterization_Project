@@ -37,7 +37,7 @@ class Dataset(torch.utils.data.Dataset):
         sample = self.transform(image=image,mask=mask)
         image = sample['image']
         mask = sample['mask']
-        return image, mask, image_path
+        return image, mask #, image_path
     
     def __len__(self):
         return len(self.data_pairs)
