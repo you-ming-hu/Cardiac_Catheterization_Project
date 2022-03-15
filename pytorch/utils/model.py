@@ -14,6 +14,14 @@ class BaseBackbone(torch.nn.Module):
             for param in non_frozen_layer.parameters():
                 param.requires_grad = True
                 
-class BaseHead(torch.nn.Module):
-    pass
+class BinarySegHead(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        
+    def forward(self,x):
+        if len(x.shape) == 4:
+            x = torch.squeeze(x,axis=1)
+        assert len(x.shape) == 3
+        x = torch.sigmoid(x)
+        return x
 

@@ -1,12 +1,10 @@
 import torch
 
 class BaseMetrics:
-    def __init__(self,loss,criterion):
+    def __init__(self,criterion,loss_class,**kwdarg):
         assert criterion in [max,min]
         self.criterion = criterion
-        assert loss._reduce.lower() == 'none'
-        assert loss._output_numpy
-        self.loss = loss
+        self.loss = loss_class(reduce='none', output_numpy=True, **kwdarg)
         
         self.best_result = None
         self.acc_count = 0
@@ -17,7 +15,7 @@ class BaseMetrics:
         
     def update_state(self,predict,label):
         with torch.no_grad():
-            batch_values = self.get_new_state(predict,label)
+            batch_values = self.loss(predict,label)
         self.acc_count += batch_values.size
         self.acc_value += batch_values.sum()
         
