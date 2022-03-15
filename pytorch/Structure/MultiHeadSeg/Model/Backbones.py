@@ -5,10 +5,10 @@ class torchvision_FCN_ResNet(BaseBackbone):
     def __init__(
         self,
         pretrained,
-        num_classes):
+        out_dim):
         
-        stem = tv.models.segmentation.fcn_resnet50(pretrained=pretrained,num_classes=num_classes,aux_loss=True)
-        non_frozen_layers = [stem.backbone.con1, stem.backbone.bn1,stem.classifier[-1],stem.aux_classifier[-1]]
+        stem = tv.models.segmentation.fcn_resnet50(pretrained=False,num_classes=out_dim,aux_loss=True,pretrained_backbone=pretrained)
+        non_frozen_layers = [stem.backbone.conv1, stem.backbone.bn1,stem.classifier[-1],stem.aux_classifier[-1]]
         
         super().__init__(stem,non_frozen_layers)
     
