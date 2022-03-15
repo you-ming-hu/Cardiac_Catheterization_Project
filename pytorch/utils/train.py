@@ -44,20 +44,19 @@ class Recorder:
         for m in self.metrics[purpose]:
             m.update_state(predict,label)
     
-    def log_metrics(self,purpose,images_count):
+    def log_metrics_state(self,purpose,images_count):
         writer = self.writers[purpose]
         metrics = self.metrics[purpose]
         for m in metrics:
             result = m.result()
             writer.add_scalar(str(m),result,images_count)
-            m.reset_state()
     
     def log_lr(self,lr,images_count):
-        writer = self.writers['training']
+        writer = self.writers['train']
         writer.add_scalar('learning rate',lr,images_count)
     
     def save_checkpoint(self,purpose,checkpoint):
-        writer = self.writers['training']
+        writer = self.writers['train']
         metrics = self.metrics[purpose]
         checkpoint_path = self.save_root.joinpath('checkpoint')
         checkpoint_count = len(list(checkpoint_path.iterdir()))
@@ -75,3 +74,13 @@ class Recorder:
                     m.best_result,
                     checkpoint_path.as_posix())
                 writer.add_text(f'best_{m}_on_{purpose}',text,0)
+                
+    def reset_metrics_state(self,purpose):
+        metrics = self.metrics[purpose]
+        for m in metrics:
+            m.reset_state()
+            
+    def log_image(self,purpose,image,epoch):
+        writer = self.writers['train']
+        writer.add_image(f'{purpose} example', image, epoch, dataformats='HWC')
+        
