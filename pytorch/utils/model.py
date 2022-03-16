@@ -20,7 +20,7 @@ class BinarySegHead(torch.nn.Module):
         
     def forward(self,x):
         if len(x.shape) == 4:
-            x = torch.squeeze(x,axis=1)
+            x = torch.squeeze(x,dim=1)
         assert len(x.shape) == 3
         x = torch.sigmoid(x)
         return x

@@ -2,6 +2,8 @@ from utils.model import BaseBackbone
 import torchvision as tv
 import segmentation_models_pytorch as smp
 
+from .Customs.Backbone1 import Backbone1
+
 class torchvision_FCN_ResNet(BaseBackbone):
     def __init__(self, pretrained, out_dim):
         stem = tv.models.segmentation.fcn_resnet50(pretrained=False,num_classes=out_dim,aux_loss=None,pretrained_backbone=pretrained)
