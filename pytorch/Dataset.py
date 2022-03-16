@@ -37,6 +37,9 @@ class Dataset(torch.utils.data.Dataset):
         sample = self.transform(image=image,mask=mask)
         image = sample['image']
         mask = sample['mask']
+        if mask.dtype == torch.uint8:
+            mask = mask.type(torch.float32)/255
+        assert mask.dtype == torch.float32
         return image, mask #, image_path
     
     def __len__(self):
@@ -60,10 +63,8 @@ class DataLoader:
         
         self.data_pairs = list(zip(images_path,masks_path))
         self.image_rgb = image_rgb
-        if transform is None:
-            transform = A.NoOp(p=1)
         self.transform = transform
-        if preprocess is None:
+        if preprocess == None:
             preprocess = A.NoOp(p=1)
         self.preprocess = preprocess
         self.batch_size = batch_size
@@ -78,7 +79,10 @@ class DataLoader:
         return len(self.data_pairs)
         
     def __call__(self,epoch):
-        transform = A.Sequential([self.transform(epoch),self.preprocess],p=1)
+        if self.transform == None:
+            transform = A.Sequential([self.preprocess],p=1)
+        else:
+            transform = A.Sequential([self.transform(epoch),self.preprocess],p=1)
         dataset = Dataset(self.data_pairs,self.image_rgb,transform,self.dtype)
         dataloader = torch.utils.data.DataLoader(
             dataset,

@@ -59,8 +59,9 @@ class Recorder:
         writer = self.writers['train']
         metrics = self.metrics[purpose]
         checkpoint_path = self.save_root.joinpath('checkpoint')
+        checkpoint_path.mkdir(parents=True,exist_ok=True)
         checkpoint_count = len(list(checkpoint_path.iterdir()))
-        checkpoint_path.joinpath(f'checkpoint_{checkpoint_count:0>4}').with_suffix('.tar')
+        checkpoint_path = checkpoint_path.joinpath(f'checkpoint_{checkpoint_count:0>4}').with_suffix('.tar')
         torch.save(checkpoint,checkpoint_path.as_posix())
         
         for m in metrics:
