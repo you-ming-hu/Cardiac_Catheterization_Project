@@ -4,6 +4,7 @@ import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
 import pathlib
 from sklearn.model_selection import train_test_split
+from tqdm import tqdm
 
 class Dataset(torch.utils.data.Dataset):
     def __init__(self,data_pairs,image_rgb,transform,dtype):
@@ -48,6 +49,7 @@ class Dataset(torch.utils.data.Dataset):
 class DataLoader:
     def __init__(
         self,
+        purpose,
         images_path,
         masks_path,
         image_rgb,
@@ -61,6 +63,7 @@ class DataLoader:
         prefetch_factor,
         dtype):
         
+        self.purpose = purpose
         self.data_pairs = list(zip(images_path,masks_path))
         self.image_rgb = image_rgb
         self.transform = transform
@@ -92,6 +95,8 @@ class DataLoader:
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
             prefetch_factor=self.prefetch_factor)
+        
+        dataloader = tqdm(dataloader, position = 0, leave = True, desc=f'EPOCH: {epoch} {self.purpose}')
         return dataloader
         
 class TrainDataLoader:
@@ -147,6 +152,7 @@ class TrainDataLoader:
             test_size = self.validation_ratio)
         
         train_dataset = DataLoader(
+            purpose = 'Training',
             images_path = train_images_path,
             masks_path = train_masks_path,
             image_rgb = self.image_rgb,
@@ -161,6 +167,7 @@ class TrainDataLoader:
             dtype = self.dtype)
         
         validation_dataset = DataLoader(
+            purpose = 'Validation',
             images_path = validation_images_path,
             masks_path = validation_masks_path,
             image_rgb = self.image_rgb,
@@ -175,6 +182,7 @@ class TrainDataLoader:
             dtype = self.dtype)
         
         validation_dataset_wo_arg = DataLoader(
+            purpose = 'Validation Without Transform',
             images_path = validation_images_path,
             masks_path = validation_masks_path,
             image_rgb = self.image_rgb,
