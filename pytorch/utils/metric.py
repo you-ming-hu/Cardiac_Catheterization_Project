@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 class BaseMetrics:
     def __init__(self,criterion,loss_class,**kwdarg):
@@ -20,7 +21,12 @@ class BaseMetrics:
         self.acc_value += batch_values.sum()
         
     def result(self):
-        return self.acc_value / self.acc_count
+        value = self.acc_value / self.acc_count
+        if isinstance(value,torch.Tensor):
+            assert not torch.isnan(value).all()
+        else:
+            assert not np.isnan(value).all()
+        return value
         
     def update_best_result(self):
         if self.best_result == None:

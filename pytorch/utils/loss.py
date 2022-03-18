@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 class BaseLoss:
     def __init__(self,reduce='mean',output_numpy=False,**kwdarg):
@@ -17,4 +18,8 @@ class BaseLoss:
             value = getattr(torch,self._reduce)(value,axis=0)
         if self._output_numpy:
             value = value.cpu().numpy()
+        if isinstance(value,torch.Tensor):
+            assert not torch.isnan(value).all()
+        else:
+            assert not np.isnan(value).all()
         return value
