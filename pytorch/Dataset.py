@@ -160,7 +160,7 @@ class TrainDataLoader:
             preprocess = self.preprocess,
             batch_size = self.train_batch_size,
             drop_last = False,
-            shuffle = False,
+            shuffle = True,
             num_workers = self.num_workers,
             pin_memory = self.pin_memory,
             prefetch_factor = self.prefetch_factor,
