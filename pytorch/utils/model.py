@@ -15,13 +15,23 @@ class BaseBackbone(torch.nn.Module):
                 param.requires_grad = True
                 
 class BinarySegHead(torch.nn.Module):
-    def __init__(self):
+    def __init__(self,logit_output):
         super().__init__()
+        self.logit_output = logit_output
         
     def forward(self,x):
         if len(x.shape) == 4:
             x = torch.squeeze(x,dim=1)
         assert len(x.shape) == 3
-        x = torch.sigmoid(x)
+        if not self.logit_output:
+            x = torch.sigmoid(x)
         return x
 
+    def predict(self,x):
+        preds = self(x)
+        if self.logit_output:
+            preds = torch.sigmoid(preds)
+        return preds
+        
+        
+        

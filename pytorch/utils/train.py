@@ -15,14 +15,31 @@ class ModelBuilder(torch.nn.Module):
         x = self.backbone(x)
         x = self.head(x)
         return x
+    
+    def predict(self,x):
+        x = self.backbone(x)
+        x = self.head.predict(x)
+        return x
             
 class Recorder:
-    def __init__(self,root,reference,derivative,branch,comment,purpose,dataset_seed,model_seed):
-        save_root = pathlib.Path(root,reference,derivative,branch,comment,f'seed(d{dataset_seed},m{model_seed})')
+    def __init__(
+        self,
+        root,
+        reference,
+        derivative,
+        branch,
+        comment,
+        purpose,
+        dataset_split_seed,
+        dataset_transform_seed,
+        dataset_shuffle_seed,
+        model_seed):
+        seed_name = f'seed(d_split{dataset_split_seed},d_transform{dataset_transform_seed},d_shuffle{dataset_shuffle_seed},m{model_seed})'
+        save_root = pathlib.Path(root,reference,derivative,branch,comment,seed_name)
         if save_root.exists():
             exist_file_count = len(list(save_root.parent.iterdir()))
-            new_save_root = save_root.parent.joinpath(f'seed(d{dataset_seed},m{model_seed})_{exist_file_count:0>3}')
-            make_sure = input(f'path {save_root.as_posix()} exist, this excution may be duplicated and will use instead the path\n {new_save_root.as_posix()}\n enter y to continue, otherwise raise exception')
+            new_save_root = save_root.parent.joinpath(seed_name+f'_{exist_file_count:0>3}')
+            make_sure = input(f'path {save_root.as_posix()} exist,\n this excution may be duplicated and will use the replacement path\n {new_save_root.as_posix()}\n enter y to continue, otherwise raise exception')
             if not make_sure.lower().startswith('y'):
                 raise Exception
             save_root = new_save_root

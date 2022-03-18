@@ -7,3 +7,11 @@ class DiceLoss(BaseMetrics):
             min,
             Losses.DiceLoss,
             smoothing=smoothing)
+        
+class DiceBCELoss(BaseMetrics):
+    def __init__(self,use_logit,smoothing=1):
+        super().__init__(
+            min,
+            Losses.DiceBCELoss,
+            use_logit=use_logit,
+            smoothing=smoothing)

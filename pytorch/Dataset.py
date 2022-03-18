@@ -41,7 +41,7 @@ class Dataset(torch.utils.data.Dataset):
         if mask.dtype == torch.uint8:
             mask = mask.type(torch.float32)/255
         assert mask.dtype == torch.float32
-        return image, mask #, image_path
+        return image, mask
     
     def __len__(self):
         return len(self.data_pairs)
