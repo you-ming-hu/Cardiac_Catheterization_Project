@@ -65,8 +65,11 @@ class Recorder:
         writer = self.writers[purpose]
         metrics = self.metrics[purpose]
         for m in metrics:
-            result = m.result()
-            writer.add_scalar(str(m),result,images_count)
+            results = m.result(detail=True)
+            for loss_name, loss_value in results.items():
+                if loss_name == 'loss':
+                    loss_name = str(m)
+                writer.add_scalar(loss_name,loss_value,images_count)
     
     def log_lr(self,lr,images_count):
         writer = self.writers['train']

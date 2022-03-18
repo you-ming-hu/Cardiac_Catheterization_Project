@@ -28,9 +28,10 @@ class BinarySegHead(torch.nn.Module):
         return x
 
     def predict(self,x):
-        preds = self(x)
-        if self.logit_output:
-            preds = torch.sigmoid(preds)
+        with torch.no_grad():
+            preds = self(x)
+            if self.logit_output:
+                preds = torch.sigmoid(preds)
         return preds
         
         

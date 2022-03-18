@@ -48,20 +48,32 @@ class Stem(torch.nn.Module):
         return x
     
 class ResBlock(torch.nn.Module):
-    def __init__(self,in_channel,reduce,n_subblocks):
+    def __init__(self,in_channel,reduce,n_subblocks,ues_instance_norm):
         super().__init__()
+        self.ues_instance_norm = ues_instance_norm
         self.fn = torch.nn.Sequential(*self.create_subblocks(in_channel,reduce,n_subblocks))
         self.att_inp = torch.nn.Conv2d(in_channel,in_channel//reduce,1,bias=False)
         self.att_x = torch.nn.Conv2d(in_channel,in_channel//reduce,1,bias=False)
     
     def create_subblocks(self,in_channel,reduce,n):
-        return [torch.nn.Sequential(
-            torch.nn.Conv2d(in_channel,in_channel//reduce,1,bias=False),
-            torch.nn.Conv2d(in_channel//reduce,in_channel//reduce,3,padding='same',groups=in_channel//reduce),
-            torch.nn.Mish(inplace=True),
-            torch.nn.Conv2d(in_channel//reduce,in_channel,1),
-            torch.nn.Mish(inplace=True),
-            ) for _ in range(n)]
+        if self.ues_instance_norm:
+            return [torch.nn.Sequential(
+                torch.nn.Conv2d(in_channel,in_channel//reduce,1,bias=False),
+                torch.nn.Conv2d(in_channel//reduce,in_channel//reduce,3,padding='same',groups=in_channel//reduce),
+                torch.nn.InstanceNorm2d(in_channel//reduce, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False),
+                torch.nn.Mish(inplace=True),
+                torch.nn.Conv2d(in_channel//reduce,in_channel,1),
+                torch.nn.InstanceNorm2d(in_channel, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False),
+                torch.nn.Mish(inplace=True),
+                ) for _ in range(n)]
+        else:
+            return [torch.nn.Sequential(
+                torch.nn.Conv2d(in_channel,in_channel//reduce,1,bias=False),
+                torch.nn.Conv2d(in_channel//reduce,in_channel//reduce,3,padding='same',groups=in_channel//reduce),
+                torch.nn.Mish(inplace=True),
+                torch.nn.Conv2d(in_channel//reduce,in_channel,1),
+                torch.nn.Mish(inplace=True),
+                ) for _ in range(n)]
         
     def forward(self,inp):
         x = self.fn(inp)
@@ -70,16 +82,16 @@ class ResBlock(torch.nn.Module):
         return x
 
 class Encoder(torch.nn.Module):
-    def __init__(self):
+    def __init__(self,ues_instance_norm):
         super().__init__()
         self.stem = Stem() # 512*512 # 8
-        self.block0 = ResBlock(in_channel=8,reduce=2,n_subblocks=2) # 512*512 # 8
+        self.block0 = ResBlock(in_channel=8,reduce=2,n_subblocks=2,ues_instance_norm=ues_instance_norm) # 512*512 # 8
         
         self.block1 = torch.nn.Sequential( # 64*64 # 16
             AttentionDownSample(downscale=8,in_channel=8,reduce=2),
             torch.nn.Conv2d(8,16,1,bias=False),
             torch.nn.Mish(inplace=True),
-            ResBlock(in_channel=16,reduce=2,n_subblocks=2)
+            ResBlock(in_channel=16,reduce=2,n_subblocks=2,ues_instance_norm=ues_instance_norm)
             )
         self.fms_reduce_1 = torch.nn.Conv2d(16, 4, 1, bias=False)
         
@@ -87,7 +99,7 @@ class Encoder(torch.nn.Module):
             AttentionDownSample(downscale=4,in_channel=16,reduce=2),
             torch.nn.Conv2d(16,32,1,bias=False),
             torch.nn.Mish(inplace=True),
-            ResBlock(in_channel=32,reduce=4,n_subblocks=2)
+            ResBlock(in_channel=32,reduce=4,n_subblocks=2,ues_instance_norm=ues_instance_norm)
             )
         self.fms_reduce_2 = torch.nn.Conv2d(32, 4, 1, bias=False)
         
@@ -95,7 +107,7 @@ class Encoder(torch.nn.Module):
             AttentionDownSample(downscale=2,in_channel=32,reduce=2),
             torch.nn.Conv2d(32,64,1,bias=False),
             torch.nn.Mish(inplace=True),
-            ResBlock(in_channel=64,reduce=4,n_subblocks=2)
+            ResBlock(in_channel=64,reduce=4,n_subblocks=2,ues_instance_norm=ues_instance_norm)
             )
         self.fms_reduce_3 = torch.nn.Conv2d(64, 4, 1, bias=False)
         
@@ -128,9 +140,9 @@ class Decoder(torch.nn.Module):
         return fms
 
 class Backbone1(torch.nn.Module):
-    def __init__(self):
+    def __init__(self,ues_instance_norm=False):
         super().__init__()
-        self.encoder = Encoder()
+        self.encoder = Encoder(ues_instance_norm=ues_instance_norm)
         self.decoder = Decoder()
         
     def forward(self,x):

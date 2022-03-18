@@ -85,3 +85,34 @@ class ReduceLROnPlateau(BaseScheduler):
             if m.__class__.__name__ == self.observe_metric:
                 break
         self.step(m.result())
+        
+        
+class CustomSchedule1():
+    def __init__(self, steps_per_epoch, warmup_epochs, reduce_gamma=-0.5):
+        super().__init__()
+        self.warmup_steps = steps_per_epoch * warmup_epochs
+        assert reduce_gamma < 0
+        self.reduce_gamma = reduce_gamma
+        self.step_count = 1
+    
+    def __call__(self,optimizer):
+        assert len(optimizer.param_groups) == 1
+        self.optimizer = optimizer
+        self.init_lr = optimizer.param_groups[0]['lr']
+        return self
+        
+    def step(self):
+        arg1 = self.step_count ** self.reduce_gamma
+        arg2 = self.step_count * (self.warmup_steps ** (self.reduce_gamma-1))
+        
+        self.optimizer.param_groups[0]['lr'] = self.init_lr * (self.warmup_steps**-self.reduce_gamma) * min(arg1, arg2)
+        self.step_count += 1
+
+    def epoch(self,recorder):
+        pass
+        
+    def state_dict(self):
+        return {key: value for key, value in self.__dict__.items() if key != 'optimizer'}
+
+    def load_state_dict(self, state_dict):
+        self.__dict__.update(state_dict)

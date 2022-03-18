@@ -22,4 +22,27 @@ class BaseLoss:
             assert not torch.isnan(value).all()
         else:
             assert not np.isnan(value).all()
-        return value
+        # return value
+        return {'loss':value}
+    
+class CompoundLoss:
+    def __init__(self,reduce='mean',output_numpy=False):
+        assert reduce.lower() in ['sum','mean','none']
+        self._reduce = reduce
+        self._output_numpy = output_numpy
+        self._losses = []
+    
+    def __str__(self):
+        return ' + '.join([f'{w}*{l}' for w,l in self._losses])
+    
+    def add_loss(self,weight,loss,**kwdarg):
+        self._losses.append((weight,loss(reduce=self._reduce,output_numpy=self._output_numpy,**kwdarg)))
+        
+    def __call__(self,predict,label):
+        output = {'loss':0}
+        for weight,loss_fn in self._losses:
+            value = loss_fn(predict,label)['loss']
+            output[str(loss_fn)] = value
+            output['loss'] = output['loss'] + weight * value
+        return output
+        
