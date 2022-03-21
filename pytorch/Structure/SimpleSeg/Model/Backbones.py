@@ -18,7 +18,6 @@ class torchvision_FCN_ResNet(BaseBackbone):
     
 class smp_Unet(BaseBackbone):
     def __init__(self, encoder_name, encoder_weights, in_channels, output_dim):
-        
         stem = smp.Unet(
             encoder_name = encoder_name, 
             encoder_weights = encoder_weights, 
@@ -30,6 +29,8 @@ class smp_Unet(BaseBackbone):
             non_froozen_layers = [stem.encoder.conv1, stem.encoder.bn1, stem.segmentation_head]
         elif encoder_name.lower().startswith('mobilenet'):
             non_froozen_layers = [stem.encoder.features[0][0], stem.encoder.features[0][1], stem.segmentation_head]
+        elif encoder_name.lower().startswith('efficientnet'):
+            non_froozen_layers = [stem.encoder._conv_stem, stem.encoder._bn0, stem.segmentation_head]
         else:
             assert False
         super().__init__(stem,non_froozen_layers)
