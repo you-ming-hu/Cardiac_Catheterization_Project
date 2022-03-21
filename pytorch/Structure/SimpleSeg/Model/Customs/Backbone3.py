@@ -156,7 +156,7 @@ class Decoder(torch.nn.Module):
         self.upsample1 = DecoderBlock(2,1,128,64) #16
         self.upsample2 = DecoderBlock(2,2,64+64,64) #32
         self.upsample3 = DecoderBlock(2,1,64,32) #64
-        self.upsample4 = DecoderBlock(2,2,32+32,32)) #128
+        self.upsample4 = DecoderBlock(2,2,32+32,32) #128
         self.upsample5 = DecoderBlock(2,1,32,16) #256
         self.upsample6 = DecoderBlock(4,2,16+16,output_channels) #512
         
