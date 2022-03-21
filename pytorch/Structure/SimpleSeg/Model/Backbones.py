@@ -3,6 +3,7 @@ import torchvision as tv
 import segmentation_models_pytorch as smp
 
 from .Customs.Backbone1 import Backbone1
+from .Customs.Backbone2 import Backbone2
 
 class torchvision_FCN_ResNet(BaseBackbone):
     def __init__(self, pretrained, out_dim):
