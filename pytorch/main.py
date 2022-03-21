@@ -155,11 +155,8 @@ torch.manual_seed(dataset_shuffle_seed)
 # create recorder
 recorder = utils.train.Recorder(
     root = Config.Logging.RootPath,
-    reference = Config.Logging.Model.Reference,
-    derivative = Config.Logging.Model.Derivative,
-    branch = Config.Logging.Model.Branch,
+    project =  Config.Logging.Project,
     comment = Config.Logging.Comment,
-    purpose = Config.Logging.Purpose,
     dataset_split_seed = dataset_split_seed,
     dataset_transform_seed = dataset_transform_seed,
     dataset_shuffle_seed = dataset_shuffle_seed,
@@ -174,7 +171,8 @@ for epoch in range(start_epoch, end_epoch):
     acc_loss = 0
     # set model to train mode
     model.train()
-    for batch_train_data in train_dataset(epoch):
+    current_datset = train_dataset(epoch)
+    for batch_train_data in current_datset:
         images,masks = batch_train_data
         images = images.to(device)
         masks = masks.to(device)
@@ -204,6 +202,7 @@ for epoch in range(start_epoch, end_epoch):
         
             if (global_step % steps_per_log == 0) and global_step != 0:
                 recorder.log_metrics_state(purpose='train',images_count=images_count)
+                recorder.update_pbar(purpose='train',pbar=current_datset)
                 recorder.reset_metrics_state(purpose='train')
                 recorder.log_lr(lr=optimizer.param_groups[0]['lr'],images_count=images_count)
     
@@ -231,7 +230,8 @@ for epoch in range(start_epoch, end_epoch):
         fig = plt.figure(figsize=figsize,dpi=dpi)
         plt.axis(False)
         
-        for batch_val_data in val_dataset(epoch):
+        current_datset = val_dataset(epoch)
+        for batch_val_data in current_datset:
             images, masks = batch_val_data
             images = images.to(device)
             masks = masks.to(device)
@@ -240,6 +240,7 @@ for epoch in range(start_epoch, end_epoch):
                     intermediate_predicts = model(images)
                 recorder.update_metrics_state(purpose=purpose, predict=intermediate_predicts, label=masks)
             del intermediate_predicts
+            recorder.update_pbar(purpose=purpose,pbar=current_datset)
             
             with autocast(enabled=amp_scale_train,dtype=torch.float32):
                 final_predicts = model.predict(images)
