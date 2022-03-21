@@ -33,7 +33,7 @@ class CompoundLoss:
         self._losses = []
     
     def __str__(self):
-        return ' + '.join([f'{w}*{l}' for w,l in self._losses])
+        return '+'.join([f'{w}*{l}' for w,l in self._losses])
     
     def add_loss(self,weight,loss,**kwdarg):
         self._losses.append((weight,loss(reduce=self._reduce,output_numpy=self._output_numpy,**kwdarg)))
