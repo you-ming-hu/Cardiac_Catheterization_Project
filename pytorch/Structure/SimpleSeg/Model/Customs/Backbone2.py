@@ -81,7 +81,7 @@ class ResBlock(torch.nn.Module):
 class AttentionBlock(torch.nn.Module):
     def __init__(self,n_resblocks,n_subblocks,in_channel,reduce):
         super().__init__()
-        self.fn = torch.nn.Sequential([ResBlock(n_subblocks,in_channel,reduce) for _ in range(n_resblocks)])
+        self.fn = torch.nn.Sequential(*[ResBlock(n_subblocks,in_channel,reduce) for _ in range(n_resblocks)])
         self.att_inp = torch.nn.Conv2d(in_channel,in_channel//reduce,1,bias=False)
         self.att_x = torch.nn.Conv2d(in_channel,in_channel//reduce,1,bias=False)
         

@@ -223,6 +223,16 @@ for epoch in range(start_epoch, end_epoch):
         acc_count = 0
         global_step += 1
     
+    checkpoint = dict(
+        model = model.state_dict(),
+        optimizer = optimizer.state_dict(),
+        scheduler = scheduler.state_dict(),
+        epoch = epoch,
+        global_step = global_step,
+        images_count = images_count)
+    recorder.save_checkpoint(checkpoint=checkpoint)
+    del checkpoint
+    
     model.eval()
     for purpose, val_dataset in zip(('validation','validation_wo_arg'),(validation_dataset, validation_dataset_wo_arg)):
         
@@ -279,14 +289,7 @@ for epoch in range(start_epoch, end_epoch):
         scheduler.epoch(recorder)
         
         recorder.log_metrics_state(purpose=purpose,images_count=images_count)
-        checkpoint = dict(
-            model = model.state_dict(),
-            optimizer = optimizer.state_dict(),
-            scheduler = scheduler.state_dict(),
-            epoch = epoch,
-            global_step = global_step,
-            images_count = images_count)
-        recorder.save_checkpoint(purpose=purpose,checkpoint=checkpoint)
+        recorder.log_best_checkpoint(purpose=purpose,epoch=epoch,global_step=global_step,images_count=images_count)
         recorder.reset_metrics_state(purpose='train')
         
         #record image
