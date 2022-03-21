@@ -71,7 +71,7 @@ class ResBlock(torch.nn.Module):
             assert isinstance(reduce, int)
             reduce = [reduce] * n_subblocks
         assert len(in_channel) == n_subblocks
-        assert len(reduce) == reduce
+        assert len(reduce) == n_subblocks
         self.fn = torch.nn.Sequential(*[SubBlock(in_channel[i],reduce[i]) for i in range(n_subblocks)])
     def forward(self,inp):
         x = self.fn(inp)
