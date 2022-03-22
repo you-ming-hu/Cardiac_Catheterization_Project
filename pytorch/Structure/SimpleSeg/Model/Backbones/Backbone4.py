@@ -115,11 +115,11 @@ class Encoder(torch.nn.Module):
             torch.nn.Mish(inplace=True),
             AttentionBlock(n_resblocks=2,n_subblocks=3,in_channel=256,reduce=2)) #32
         
-        self.block3 = torch.nn.Sequential( 
+        self.block3 = torch.nn.Sequential(
             AttentionDownSample(downscale=4,in_channel=256,reduce=2),
             torch.nn.Conv2d(256,512,1,bias=False),
             torch.nn.Mish(inplace=True),
-            AttentionBlock(n_resblocks=2,n_subblocks=1,in_channel=128,reduce=2)) #8
+            AttentionBlock(n_resblocks=2,n_subblocks=1,in_channel=512,reduce=2)) #8
         
     def forward(self,x):
         fms = []
@@ -160,11 +160,11 @@ class DecoderBlock(torch.nn.Module):
 class Decoder(torch.nn.Module):
     def __init__(self,output_channels):
         super().__init__()
-        self.upsample1 = DecoderBlock(128,64) #16
-        self.upsample2 = DecoderBlock(64+64,64) #32
-        self.upsample3 = DecoderBlock(64,32) #64
-        self.upsample4 = DecoderBlock(32+32,32) #128
-        self.upsample5 = DecoderBlock(32,16) #256
+        self.upsample1 = DecoderBlock(512,256) #16
+        self.upsample2 = DecoderBlock(256+256,256) #32
+        self.upsample3 = DecoderBlock(256,64) #64
+        self.upsample4 = DecoderBlock(64+64,64) #128
+        self.upsample5 = DecoderBlock(64,16) #256
         self.upsample6 = DecoderBlock(16+16,output_channels) #512
         
     def forward(self,fms):
