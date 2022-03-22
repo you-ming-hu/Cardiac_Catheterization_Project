@@ -1,24 +1,7 @@
-from utils.model import BaseBackbone
-import torchvision as tv
+
 import segmentation_models_pytorch as smp
+from utils.model import BaseBackbone
 
-from .Customs.Backbone1 import Backbone1
-from .Customs.Backbone2 import Backbone2
-from .Customs.Backbone3 import Backbone3
-from .Customs.Backbone4 import Backbone4
-
-class torchvision_FCN_ResNet(BaseBackbone):
-    def __init__(self, pretrained, out_dim):
-        stem = tv.models.segmentation.fcn_resnet50(pretrained=False,num_classes=out_dim,aux_loss=None,pretrained_backbone=pretrained)
-        non_frozen_layers = [stem.backbone.conv1, stem.backbone.bn1, stem.classifier[-1]]
-        
-        super().__init__(stem,non_frozen_layers)
-        
-    def forward(self, x):
-        x = self.stem(x)
-        x = x['out']
-        return x
-    
 class smp_Unet(BaseBackbone):
     def __init__(self, encoder_name, encoder_weights, in_channels, output_dim):
         stem = smp.Unet(
