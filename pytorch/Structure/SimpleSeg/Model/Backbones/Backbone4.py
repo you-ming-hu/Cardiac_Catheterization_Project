@@ -104,20 +104,20 @@ class Encoder(torch.nn.Module):
         
         self.block1 = torch.nn.Sequential(
             AttentionDownSample(downscale=4,in_channel=16,reduce=2),
-            torch.nn.Conv2d(16,32,1,bias=False),
+            torch.nn.Conv2d(16,64,1,bias=False),
             torch.nn.Mish(inplace=True),
-            AttentionBlock(n_resblocks=2,n_subblocks=2,in_channel=32,reduce=2),
-            AttentionBlock(n_resblocks=2,n_subblocks=2,in_channel=32,reduce=2)) #128
+            AttentionBlock(n_resblocks=2,n_subblocks=2,in_channel=64,reduce=2),
+            AttentionBlock(n_resblocks=2,n_subblocks=2,in_channel=64,reduce=2)) #128
         
         self.block2 = torch.nn.Sequential( 
-            AttentionDownSample(downscale=4,in_channel=32,reduce=2),
-            torch.nn.Conv2d(32,64,1,bias=False),
+            AttentionDownSample(downscale=4,in_channel=64,reduce=2),
+            torch.nn.Conv2d(64,256,1,bias=False),
             torch.nn.Mish(inplace=True),
-            AttentionBlock(n_resblocks=2,n_subblocks=3,in_channel=64,reduce=2)) #32
+            AttentionBlock(n_resblocks=2,n_subblocks=3,in_channel=256,reduce=2)) #32
         
         self.block3 = torch.nn.Sequential( 
-            AttentionDownSample(downscale=4,in_channel=64,reduce=2),
-            torch.nn.Conv2d(64,128,1,bias=False),
+            AttentionDownSample(downscale=4,in_channel=256,reduce=2),
+            torch.nn.Conv2d(256,512,1,bias=False),
             torch.nn.Mish(inplace=True),
             AttentionBlock(n_resblocks=2,n_subblocks=1,in_channel=128,reduce=2)) #8
         
