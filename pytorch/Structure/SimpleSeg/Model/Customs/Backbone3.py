@@ -169,7 +169,7 @@ class Decoder(torch.nn.Module):
         x = self.upsample4(x,fms[2])
         x = self.upsample5(x)
         x = self.upsample6(x,fms[3])
-        return fms
+        return x
 
 class Backbone3(torch.nn.Module):
     def __init__(self,input_channels,output_channels):
