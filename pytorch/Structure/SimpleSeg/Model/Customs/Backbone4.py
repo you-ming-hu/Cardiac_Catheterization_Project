@@ -142,10 +142,10 @@ class DecoderBlock(torch.nn.Module):
         out_channels):
         super().__init__()
         self.conv1 = torch.nn.Sequential(
-             torch.nn.Conv2d(in_channels,out_channels,padding='same'),
+             torch.nn.Conv2d(in_channels,out_channels,3,padding='same'),
              torch.nn.Mish(inplace=True))
         self.conv2 = torch.nn.Sequential(
-             torch.nn.Conv2d(out_channels,out_channels,padding='same'),
+             torch.nn.Conv2d(out_channels,out_channels,3,padding='same'),
              torch.nn.Mish(inplace=True))
 
     def forward(self, x, fm=None):
