@@ -17,6 +17,8 @@ class smp_Unet(BaseBackbone):
             non_froozen_layers = [stem.encoder.features[0][0], stem.encoder.features[0][1], stem.segmentation_head]
         elif encoder_name.lower().startswith('efficientnet'):
             non_froozen_layers = [stem.encoder._conv_stem, stem.encoder._bn0, stem.segmentation_head]
+        elif encoder_name.lower().startswith('densenet'):
+            non_froozen_layers = [stem.encoder.features[0], stem.encoder.features[1], stem.segmentation_head]
         else:
             assert False
         super().__init__(stem,non_froozen_layers)
