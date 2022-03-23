@@ -154,13 +154,10 @@ torch.manual_seed(dataset_shuffle_seed)
 
 # create recorder
 recorder = utils.train.Recorder(
-    root = Config.Logging.RootPath,
-    project =  Config.Logging.Project,
-    comment = Config.Logging.Comment,
-    dataset_split_seed = dataset_split_seed,
-    dataset_transform_seed = dataset_transform_seed,
-    dataset_shuffle_seed = dataset_shuffle_seed,
-    model_seed = model_seed)
+    path = Config.Logging.RootPath,
+    checkpoint_filename = Config.Logging.FileName.Checkpoint,
+    summary_filename = Config.Logging.FileName.Summary)
+
 recorder.create_metrics_and_writers(metrics_class,metrics_params)
 recorder.log_config(Config)
 

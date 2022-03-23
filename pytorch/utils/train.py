@@ -25,36 +25,23 @@ class Recorder:
     all_purposes = ['train','validation','validation_wo_arg']
     def __init__(
         self,
-        root,
-        project,
-        comment,
-        dataset_split_seed,
-        dataset_transform_seed,
-        dataset_shuffle_seed,
-        model_seed):
-        seed_name = f'seed({dataset_split_seed},{dataset_transform_seed},{dataset_shuffle_seed},{model_seed})'
-        save_root = pathlib.Path(root,project,seed_name)
-        try:
-            files = list(save_root.iterdir())
-            if len(files) != 0:
-                make_sure = input(f'this excution may be duplicated\n enter y to continue, otherwise raise exception')
-                if not make_sure.lower().startswith('y'):
-                    raise Exception
-                adding_file_count = max(list(map(lambda x: int(x.name),files)))+1
-                # max(files, key=lambda x: int(x.name)) + 1
-            else:
-                adding_file_count = 0
-        except FileNotFoundError:
-            adding_file_count = 0
-        self.save_root = save_root.joinpath(f'{adding_file_count:0>3}',comment)
+        path,
+        checkpoint_filename,
+        summary_filename):
+        save_root = pathlib.Path(path)
+        assert not save_root.exists()
+        
+        self.save_root = save_root
+        self.checkpoint_filename = checkpoint_filename
+        self.summary_filename = summary_filename
         
     def log_config(self,config):
         text = f'CONFIG:\n  {config}'
         self.writers['train'].add_text('CONFIG',text,0)
         
     def create_metrics_and_writers(self,metrics_class,metrics_param):
-        summary_path = self.save_root.joinpath('summary')
         assert len(metrics_class) == len(metrics_param)
+        summary_path = self.save_root.joinpath(self.summary_filename)
         self.writers = {p: torch.utils.tensorboard.writer.SummaryWriter(log_dir=summary_path.joinpath(p).as_posix()) for p in self.all_purposes}
         self.metrics = {p: [mc(**mp) for mc,mp in zip(metrics_class,metrics_param)] for p in self.all_purposes}
         
@@ -90,7 +77,7 @@ class Recorder:
         writer.add_scalar('learning rate',lr,images_count)
     
     def save_checkpoint(self,checkpoint):
-        checkpoint_path = self.save_root.joinpath('checkpoint')
+        checkpoint_path = self.save_root.joinpath(self.checkpoint_filename)
         checkpoint_path.mkdir(parents=True,exist_ok=True)
         checkpoint_count = len(list(checkpoint_path.iterdir()))
         checkpoint_path = checkpoint_path.joinpath(f'checkpoint_{checkpoint_count:0>4}').with_suffix('.tar')
