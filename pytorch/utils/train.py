@@ -16,9 +16,12 @@ class ModelBuilder(torch.nn.Module):
         x = self.head(x)
         return x
     
-    def predict(self,x):
+    def predict(self,x,threshold=None):
         x = self.backbone(x)
         x = self.head.predict(x)
+        if threshold != None:
+            assert 0 <= threshold <= 1
+            x = (x > threshold).type(torch.float32)
         return x
             
 class Recorder:

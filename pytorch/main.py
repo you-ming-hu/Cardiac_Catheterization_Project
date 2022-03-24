@@ -136,12 +136,13 @@ if Config.Training.Settings.Model.FreezeBackbone:
     model.freeze_backbone()
 
 # setup for logging validation image segmentation examples
-ncols = Config.Logging.Image.Columns * 4
+ncols = Config.Logging.Image.Columns * 3
 nrows = Config.Logging.Image.Rows
 figsize = Config.Logging.Image.Figsize
 fontsize = Config.Logging.Image.Fontsize
 dpi = Config.Logging.Image.DPI
 mask_alpha = Config.Logging.Image.MaskAlpha
+predict_threshold = Config.Logging.Image.Threshold
 
 amp_scale_train = Config.Training.Settings.AmpScaleTrain
 # if amp_scale_train:
@@ -175,7 +176,6 @@ for epoch in range(start_epoch, end_epoch):
         masks = masks.to(device)
         with autocast(enabled=amp_scale_train,dtype=torch.float32):
             predicts = model(images)
-            # loss = loss_fn(predicts,masks)
             loss = loss_fn(predicts,masks)['loss']
             recorder.update_metrics_state(purpose='train', predict=predicts, label=masks)
 
@@ -251,8 +251,14 @@ for epoch in range(start_epoch, end_epoch):
             
             with autocast(enabled=amp_scale_train,dtype=torch.float32):
                 final_predicts = model.predict(images)
+                
             if acc_output_images <= nrows*ncols:
                 for image,mask,predict in zip(images.cpu().numpy().squeeze(axis=1),masks.cpu().numpy(),final_predicts.cpu().detach().numpy()):
+                    binary_predict = (predict > predict_threshold).astype(float)
+                    tp = (mask==1) & (binary_predict==1)
+                    fp = binary_predict > mask
+                    fn = mask > binary_predict
+                    
                     if acc_output_images < nrows*ncols:
                         fig.add_subplot(nrows,ncols,acc_output_images)
                         plt.imshow(image,cmap='gray')
@@ -262,23 +268,25 @@ for epoch in range(start_epoch, end_epoch):
                         
                         fig.add_subplot(nrows,ncols,acc_output_images)
                         plt.imshow(image,cmap='gray')
-                        plt.imshow(mask,cmap='gray',alpha=mask_alpha)
-                        plt.title('Mask',fontsize=fontsize)
+                        plt.imshow(tp,alpha=tp*mask_alpha,cmap='Greens')
+                        plt.imshow(fp,alpha=fp*mask_alpha,cmap='Reds')
+                        plt.imshow(fn,alpha=fn*mask_alpha,cmap='Blues')
+                        plt.title(f'Threshold: {predict_threshold:.2f}',fontsize=fontsize)
                         plt.axis(False)
                         acc_output_images += 1
                         
                         fig.add_subplot(nrows,ncols,acc_output_images)
-                        plt.imshow(image,cmap='gray')
-                        plt.imshow(predict,cmap='gray',alpha=mask_alpha)
+                        plt.imshow(predict,cmap='gray')
                         plt.title('Predict',fontsize=fontsize)
                         plt.axis(False)
                         acc_output_images += 1
+                    
+                    del predict
+                    del binary_predict
+                    del tp
+                    del fp
+                    del fn
                         
-                        fig.add_subplot(nrows,ncols,acc_output_images)
-                        plt.imshow(predict,cmap='gray',alpha=mask_alpha)
-                        plt.title('Predict',fontsize=fontsize)
-                        plt.axis(False)
-                        acc_output_images += 1
             del final_predicts
             del images
             del masks
