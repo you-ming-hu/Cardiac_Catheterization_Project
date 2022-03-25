@@ -181,7 +181,7 @@ class DecoderBlock(torch.nn.Module):
         super().__init__()
         self.conv1 = torch.nn.Sequential(
              torch.nn.Conv2d(in_channels,out_channels,3,padding='same'),
-             torch.nn.BatchNorm2d(in_channels),
+             torch.nn.BatchNorm2d(out_channels),
              torch.nn.ReLU(inplace=True))
         self.conv2 = torch.nn.Sequential(
              torch.nn.Conv2d(out_channels,out_channels,3,padding='same'),
