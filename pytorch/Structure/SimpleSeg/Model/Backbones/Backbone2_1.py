@@ -34,13 +34,13 @@ class Stem(torch.nn.Module):
     def __init__(self,input_channels,start_chennels):
         super().__init__()
         self.body = torch.nn.Sequential(
-            torch.nn.Conv2d(input_channels,64,7,padding='same',bias=False),
-            AttentionDownSample(2,64,2),
-            torch.nn.BatchNorm2d(64),
-            torch.nn.ReLU(inplace=True),
-            torch.nn.MaxPool2d(3,2, padding='same'))
-            
-            
+            torch.nn.Conv2d(input_channels,start_chennels//2,7,padding='same'),
+            torch.nn.InstanceNorm2d(start_chennels//2, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False),
+            torch.nn.Mish(inplace=True),
+            torch.nn.Conv2d(start_chennels//2,start_chennels-input_channels,3,padding='same'),
+            torch.nn.InstanceNorm2d(start_chennels-input_channels, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False),
+            torch.nn.Mish(inplace=True)
+            )
         self.merge = torch.nn.Conv2d(8,8,3,padding='same')
     
     def forward(self,image):
@@ -96,90 +96,63 @@ class Encoder(torch.nn.Module):
         super().__init__()
         self.stem = Stem(input_channels,8)
         self.block0 = torch.nn.Sequential(
-            AttentionDownSample(downscale=2,in_channel=8,reduce=2),
             torch.nn.Conv2d(8,16,1),
             torch.nn.InstanceNorm2d(16, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False),
             torch.nn.Mish(inplace=True),
             AttentionBlock(n_resblocks=2,n_subblocks=2,in_channel=16,reduce=2),
-            AttentionBlock(n_resblocks=2,n_subblocks=2,in_channel=16,reduce=2)) #512
+            AttentionBlock(n_resblocks=2,n_subblocks=2,in_channel=16,reduce=2))
         
         self.block1 = torch.nn.Sequential(
             AttentionDownSample(downscale=4,in_channel=16,reduce=2),
-            torch.nn.Conv2d(16,64,1,bias=False),
+            torch.nn.Conv2d(16,32,1,bias=False),
             torch.nn.Mish(inplace=True),
-            AttentionBlock(n_resblocks=2,n_subblocks=2,in_channel=64,reduce=2),
-            AttentionBlock(n_resblocks=2,n_subblocks=2,in_channel=64,reduce=2)) #128
+            AttentionBlock(n_resblocks=2,n_subblocks=2,in_channel=32,reduce=2),
+            AttentionBlock(n_resblocks=2,n_subblocks=2,in_channel=32,reduce=2))
+        self.fms_reduce_1 = torch.nn.Conv2d(32, 8, 1, bias=False) #(128,128,8)
         
         self.block2 = torch.nn.Sequential( 
-            AttentionDownSample(downscale=4,in_channel=64,reduce=2),
-            torch.nn.Conv2d(64,256,1,bias=False),
+            AttentionDownSample(downscale=4,in_channel=32,reduce=2),
+            torch.nn.Conv2d(32,64,1,bias=False),
             torch.nn.Mish(inplace=True),
-            AttentionBlock(n_resblocks=2,n_subblocks=3,in_channel=256,reduce=2)) #32
+            AttentionBlock(n_resblocks=2,n_subblocks=3,in_channel=64,reduce=2))
+        self.fms_reduce_2 = torch.nn.Conv2d(64, 16, 1, bias=False) # (32,32,16)
         
-        self.block3 = torch.nn.Sequential(
-            AttentionDownSample(downscale=4,in_channel=256,reduce=2),
-            torch.nn.Conv2d(256,512,1,bias=False),
+        self.block3 = torch.nn.Sequential( 
+            AttentionDownSample(downscale=4,in_channel=64,reduce=2),
+            torch.nn.Conv2d(64,128,1,bias=False),
             torch.nn.Mish(inplace=True),
-            AttentionBlock(n_resblocks=2,n_subblocks=1,in_channel=512,reduce=2)) #8
+            AttentionBlock(n_resblocks=2,n_subblocks=1,in_channel=128,reduce=2))
+        self.fms_reduce_3 = torch.nn.Conv2d(128, 32, 1, bias=False) # (8,8,32)
         
     def forward(self,x):
         fms = []
         x = self.stem(x)
-        x = self.block0(x) 
-        fms.append(x)
+        x = self.block0(x)
         x = self.block1(x)
-        fms.append(x)
+        fms.append(self.fms_reduce_1(x))
         x = self.block2(x)
-        fms.append(x)
+        fms.append(self.fms_reduce_2(x))
         x = self.block3(x)
-        fms.append(x)
+        fms.append(self.fms_reduce_3(x))
         return fms
-    
-
-class DecoderBlock(torch.nn.Module):
-    def __init__(
-        self,
-        in_channels,
-        out_channels):
-        super().__init__()
-        self.conv1 = torch.nn.Sequential(
-             torch.nn.Conv2d(in_channels,out_channels,3,padding='same'),
-             torch.nn.Mish(inplace=True))
-        self.conv2 = torch.nn.Sequential(
-             torch.nn.Conv2d(out_channels,out_channels,3,padding='same'),
-             torch.nn.Mish(inplace=True))
-
-    def forward(self, x, fm=None):
-        x = torch.nn.functional.interpolate(x,scale_factor=2,mode='bilinear',align_corners=True)
-        if fm != None:
-            x = torch.cat([x, fm], dim=1)
-        x = self.conv1(x)
-        x = self.conv2(x)
-        return x
-
+        
         
 class Decoder(torch.nn.Module):
     def __init__(self,output_channels):
         super().__init__()
-        self.upsample1 = DecoderBlock(512,256) #16
-        self.upsample2 = DecoderBlock(256+256,256) #32
-        self.upsample3 = DecoderBlock(256,64) #64
-        self.upsample4 = DecoderBlock(64+64,64) #128
-        self.upsample5 = DecoderBlock(64,16) #256
-        self.upsample6 = DecoderBlock(16+16,output_channels) #512
+        self.body = torch.nn.Sequential(
+            torch.nn.Conv2d(8+16+32, output_channels, 1),
+            torch.nn.Mish(inplace=True)
+            )
         
     def forward(self,fms):
-        fms = fms[::-1]
-        x = fms[0]
-        x = self.upsample1(x)
-        x = self.upsample2(x,fms[1])
-        x = self.upsample3(x)
-        x = self.upsample4(x,fms[2])
-        x = self.upsample5(x)
-        x = self.upsample6(x,fms[3])
-        return x
+        for i in range(len(fms)):
+            fms[i] = torch.nn.functional.interpolate(fms[i],size=(512,512),mode='bilinear',align_corners=True)
+        fms = torch.cat(fms,dim=1)
+        fms = self.body(fms)
+        return fms
 
-class Backbone4(torch.nn.Module):
+class Backbone2_1(torch.nn.Module):
     def __init__(self,input_channels,output_channels):
         super().__init__()
         self.encoder = Encoder(input_channels=input_channels)
