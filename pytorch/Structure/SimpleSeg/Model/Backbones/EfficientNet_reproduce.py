@@ -79,7 +79,7 @@ class MBConvBlock(torch.nn.Module):
         else:
             self._expand = False
         
-        self._depthwise_conv = Conv2dDynamicSamePadding(in_channels=oup, out_channels=oup, groups=oup, kernel_size=kernel_size, stride=stride, bias=False, padding='same')
+        self._depthwise_conv = Conv2dDynamicSamePadding(in_channels=oup, out_channels=oup, groups=oup, kernel_size=kernel_size, stride=stride, bias=False)
         self._bn1 = torch.nn.BatchNorm2d(num_features=oup, momentum=bn_mom, eps=bn_eps)
         
         num_squeezed_channels = max(1, int(input_filters//se_reduce))
@@ -144,7 +144,7 @@ class EfficientNetBackbone(torch.nn.Module):
         
         out_channels = efficientnet_b4_parameters[0]['input_filters']
         self.stem = torch.nn.Sequential(
-            Conv2dDynamicSamePadding(in_channels, out_channels, kernel_size=3, stride=2, bias=False,padding='same'),
+            Conv2dDynamicSamePadding(in_channels, out_channels, kernel_size=3, stride=2, bias=False),
             torch.nn.BatchNorm2d(num_features=out_channels, momentum=bn_mom, eps=bn_eps),
             MemoryEfficientSwish()
         )
