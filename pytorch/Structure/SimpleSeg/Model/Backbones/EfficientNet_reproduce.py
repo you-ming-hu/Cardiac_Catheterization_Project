@@ -171,7 +171,7 @@ class EfficientNetBackbone(torch.nn.Module):
         x = self._block5(x,drop_connect_rate=self.drop_connect_rate) #16
         x = self._block6(x,drop_connect_rate=self.drop_connect_rate) #16
         fms.append(x)
-        return x
+        return fms
 
 class DecoderBlock(torch.nn.Module):
     def __init__(
