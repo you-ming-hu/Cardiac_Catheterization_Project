@@ -49,7 +49,6 @@ class MemoryEfficientSwish(torch.nn.Module):
 class Conv2dDynamicSamePadding(torch.nn.Conv2d):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, dilation=1, groups=1, bias=True):
         super().__init__(in_channels, out_channels, kernel_size, stride, 0, dilation, groups, bias)
-        self.stride = [self.stride]*2
 
     def forward(self, x):
         ih, iw = x.shape[-2], x.shape[-1]
@@ -61,7 +60,7 @@ class Conv2dDynamicSamePadding(torch.nn.Conv2d):
         if pad_h > 0 or pad_w > 0:
             x = torch.nn.functional.pad(x, [pad_w // 2, pad_w - pad_w // 2, pad_h // 2, pad_h - pad_h // 2])
         return torch.nn.functional.conv2d(x, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
-
+    
 class MBConvBlock(torch.nn.Module):
     def __init__(self, kernel_size, stride, expand_ratio, input_filters, output_filters, se_reduce):
         super().__init__()
