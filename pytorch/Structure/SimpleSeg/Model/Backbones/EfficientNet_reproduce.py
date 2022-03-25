@@ -2,13 +2,14 @@ import torch
 import math
 
 efficientnet_b4_parameters = [
-    dict(num_repeat=2, kernel_size=3, stride=1, expand_ratio=1, input_filters=48, output_filters=24, se_reduce=4),
-    dict(num_repeat=4, kernel_size=3, stride=2, expand_ratio=6, input_filters=24, output_filters=32, se_reduce=4),
-    dict(num_repeat=4, kernel_size=5, stride=2, expand_ratio=6, input_filters=32, output_filters=56, se_reduce=4),
-    dict(num_repeat=6, kernel_size=3, stride=2, expand_ratio=6, input_filters=56, output_filters=112, se_reduce=4),
-    dict(num_repeat=6, kernel_size=5, stride=1, expand_ratio=6, input_filters=112, output_filters=160, se_reduce=4),
-    dict(num_repeat=8, kernel_size=5, stride=2, expand_ratio=6, input_filters=160, output_filters=272, se_reduce=4),
-    dict(num_repeat=2, kernel_size=3, stride=1, expand_ratio=6, input_filters=272, output_filters=448, se_reduce=4)]
+    dict(layer_count=0, num_repeat=2, kernel_size=3, stride=1, expand_ratio=1, input_filters=48, output_filters=24, se_reduce=4),
+    dict(layer_count=2, num_repeat=4, kernel_size=3, stride=2, expand_ratio=6, input_filters=24, output_filters=32, se_reduce=4),
+    dict(layer_count=6, num_repeat=4, kernel_size=5, stride=2, expand_ratio=6, input_filters=32, output_filters=56, se_reduce=4),
+    dict(layer_count=10, num_repeat=6, kernel_size=3, stride=2, expand_ratio=6, input_filters=56, output_filters=112, se_reduce=4),
+    dict(layer_count=16, num_repeat=6, kernel_size=5, stride=1, expand_ratio=6, input_filters=112, output_filters=160, se_reduce=4),
+    dict(layer_count=22, num_repeat=8, kernel_size=5, stride=2, expand_ratio=6, input_filters=160, output_filters=272, se_reduce=4),
+    dict(layer_count=30, num_repeat=2, kernel_size=3, stride=1, expand_ratio=6, input_filters=272, output_filters=448, se_reduce=4)]
+total_layer_count = 32
 
 def drop_connect(inputs, p, training):
     assert 0 <= p <= 1, 'p must be in range of [0,1]'
@@ -116,12 +117,11 @@ class MBConvBlock(torch.nn.Module):
         return x
 
 class Block(torch.nn.Module):
-    def __init__(self,num_repeat, kernel_size, stride, expand_ratio, input_filters, output_filters, se_reduce):
+    def __init__(self,layer_count ,num_repeat, kernel_size, stride, expand_ratio, input_filters, output_filters, se_reduce):
         super().__init__()
-        
+        self.layer_count = layer_count
         self._mb_conv_blocks = torch.nn.ModuleList([])
         self._mb_conv_blocks.append(MBConvBlock(kernel_size, stride, expand_ratio, input_filters, output_filters, se_reduce))
-        
         stride=1
         input_filters=output_filters
         
@@ -130,7 +130,7 @@ class Block(torch.nn.Module):
     
     def forward(self,x,drop_connect_rate):
         for idx, block in enumerate(self._mb_conv_blocks):
-            drop_connect_rate *= float(idx) / len(self._blocks)  # scale drop connect_rate
+            drop_connect_rate *= float(idx+self.layer_count) / total_layer_count  # scale drop connect_rate
             x = block(x, drop_connect_rate=drop_connect_rate)
         return x
 
@@ -160,16 +160,16 @@ class EfficientNetBackbone(torch.nn.Module):
         fms = []
         x = self.stem(x) #256
         fms.append(x)
-        x = self._block0(x,drop_connect_rate=self.drop_connect_rate*0/7) #256
-        x = self._block1(x,drop_connect_rate=self.drop_connect_rate*1/7) #128
+        x = self._block0(x,drop_connect_rate=self.drop_connect_rate) #256
+        x = self._block1(x,drop_connect_rate=self.drop_connect_rate) #128
         fms.append(x)
-        x = self._block2(x,drop_connect_rate=self.drop_connect_rate*2/7) #64
+        x = self._block2(x,drop_connect_rate=self.drop_connect_rate) #64
         fms.append(x)
-        x = self._block3(x,drop_connect_rate=self.drop_connect_rate*3/7) #32
-        x = self._block4(x,drop_connect_rate=self.drop_connect_rate*4/7) #32
+        x = self._block3(x,drop_connect_rate=self.drop_connect_rate) #32
+        x = self._block4(x,drop_connect_rate=self.drop_connect_rate) #32
         fms.append(x)
-        x = self._block5(x,drop_connect_rate=self.drop_connect_rate*5/7) #16
-        x = self._block6(x,drop_connect_rate=self.drop_connect_rate*6/7) #16
+        x = self._block5(x,drop_connect_rate=self.drop_connect_rate) #16
+        x = self._block6(x,drop_connect_rate=self.drop_connect_rate) #16
         fms.append(x)
         return x
 
