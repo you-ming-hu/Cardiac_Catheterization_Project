@@ -52,7 +52,7 @@ class Conv2dDynamicSamePadding(torch.nn.Conv2d):
         self.stride = [self.stride]*2
 
     def forward(self, x):
-        ih, iw = x.size()[-2:]
+        ih, iw = x.shape[-2], x.shape[-1]
         kh, kw = self.weight.size()[-2:]
         sh, sw = self.stride
         oh, ow = math.ceil(ih / sh), math.ceil(iw / sw)  # change the output size according to stride ! ! !
