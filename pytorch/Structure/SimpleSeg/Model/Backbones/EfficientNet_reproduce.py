@@ -1,4 +1,5 @@
 import torch
+import math
 
 efficientnet_b4_parameters = [
     dict(num_repeat=2, kernel_size=3, stride=1, expand_ratio=1, input_filters=48, output_filters=24, se_reduce=4),
@@ -44,7 +45,22 @@ class SwishImplementation(torch.autograd.Function):
 class MemoryEfficientSwish(torch.nn.Module):
     def forward(self, x):
         return SwishImplementation.apply(x)
+    
+class Conv2dDynamicSamePadding(torch.nn.Conv2d):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, dilation=1, groups=1, bias=True):
+        super().__init__(in_channels, out_channels, kernel_size, stride, 0, dilation, groups, bias)
+        self.stride = [self.stride]*2
 
+    def forward(self, x):
+        ih, iw = x.size()[-2:]
+        kh, kw = self.weight.size()[-2:]
+        sh, sw = self.stride
+        oh, ow = math.ceil(ih / sh), math.ceil(iw / sw)  # change the output size according to stride ! ! !
+        pad_h = max((oh - 1) * self.stride[0] + (kh - 1) * self.dilation[0] + 1 - ih, 0)
+        pad_w = max((ow - 1) * self.stride[1] + (kw - 1) * self.dilation[1] + 1 - iw, 0)
+        if pad_h > 0 or pad_w > 0:
+            x = torch.nn.functional.pad(x, [pad_w // 2, pad_w - pad_w // 2, pad_h // 2, pad_h - pad_h // 2])
+        return torch.nn.functional.conv2d(x, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
 
 class MBConvBlock(torch.nn.Module):
     def __init__(self, kernel_size, stride, expand_ratio, input_filters, output_filters, se_reduce):
@@ -63,7 +79,7 @@ class MBConvBlock(torch.nn.Module):
         else:
             self._expand = False
         
-        self._depthwise_conv = torch.nn.Conv2d(in_channels=oup, out_channels=oup, groups=oup, kernel_size=kernel_size, stride=stride, bias=False, padding='same')
+        self._depthwise_conv = Conv2dDynamicSamePadding(in_channels=oup, out_channels=oup, groups=oup, kernel_size=kernel_size, stride=stride, bias=False, padding='same')
         self._bn1 = torch.nn.BatchNorm2d(num_features=oup, momentum=bn_mom, eps=bn_eps)
         
         num_squeezed_channels = max(1, int(input_filters//se_reduce))
@@ -128,7 +144,7 @@ class EfficientNetBackbone(torch.nn.Module):
         
         out_channels = efficientnet_b4_parameters[0]['input_filters']
         self.stem = torch.nn.Sequential(
-            torch.nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, bias=False,padding='same'),
+            Conv2dDynamicSamePadding(in_channels, out_channels, kernel_size=3, stride=2, bias=False,padding='same'),
             torch.nn.BatchNorm2d(num_features=out_channels, momentum=bn_mom, eps=bn_eps),
             MemoryEfficientSwish()
         )
