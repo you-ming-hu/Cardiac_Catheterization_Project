@@ -45,14 +45,13 @@ def stride_block_modify(block):
     num_squeezed_channels = max(1, int(block._block_args.input_filters * block._block_args.se_ratio))
     stride_conv_modify(block._depthwise_conv,num_squeezed_channels)
 
-class SMP_Unet_EffiNet_AttDs(BaseBackbone):
-    def __init__(self, encoder_name, encoder_weights, in_channels, output_dim):
-        assert encoder_name.lower().startswith('efficientnet')
+class SMP_Unet_EffiNetB4_AttDs(BaseBackbone):
+    def __init__(self, in_channels, out_channels):
         stem = smp.Unet(
-            encoder_name = encoder_name, 
-            encoder_weights = encoder_weights, 
+            encoder_name = 'efficientnet-b4', 
+            encoder_weights = 'imagenet', 
             in_channels = in_channels, 
-            classes = output_dim,
+            classes = out_channels,
             activation = None,
             aux_params = None)
         
