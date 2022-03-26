@@ -63,7 +63,14 @@ class SMP_Unet_EffiNet_AttDs(BaseBackbone):
         stride_block_modify(stem.encoder._blocks[10])
         stride_block_modify(stem.encoder._blocks[22])
         
-        non_froozen_layers = [stem.encoder._conv_stem, stem.encoder._bn0, stem.segmentation_head]
+        non_froozen_layers = [
+            stem.encoder._conv_stem,
+            stem.encoder._bn0,
+            stem.encoder._blocks[2].downsample,
+            stem.encoder._blocks[6].downsample,
+            stem.encoder._blocks[10].downsample,
+            stem.encoder._blocks[22].downsample,
+            stem.segmentation_head]
         super().__init__(stem,non_froozen_layers)
         
     def forward(self, x):
