@@ -35,7 +35,7 @@ class AttentionDownSample(torch.nn.Module):
 
 def stride_conv_modify(layer,reduce):
     layer.downsample = AttentionDownSample(2,layer.out_channels,reduce)
-    def forward(self):
+    def forward(self,x):
         x = torch.nn.functional.conv2d(x, self.weight, self.bias, 1, 'same', self.dilation, self.groups)
         x = self.downsample(x)
         return x
