@@ -7,3 +7,4 @@ from .Backbone3 import Backbone3
 from .Backbone4 import Backbone4
 from .EfficientNet_reproduce import Unet_EfficientNetB4_reproduce
 from .SMP_Unet_EffiNetB4_AttDs import SMP_Unet_EffiNetB4_AttDs
+from .SMP_Unet_EffiNetB4_proirAttDs import SMP_Unet_EffiNetB4_proirAttDs
