@@ -7,8 +7,8 @@ class AttentionDownSample(torch.nn.Module):
     def __init__(self,downscale,in_channel,reduce):
         super().__init__()
         self.downscale = downscale
-        self.Q = torch.nn.Linear(in_channel, in_channel//reduce, bias=False)
-        self.K = torch.nn.Linear(in_channel, in_channel//reduce, bias=False)
+        self.Q = torch.nn.Linear(in_channel, reduce, bias=False)
+        self.K = torch.nn.Linear(in_channel, reduce, bias=False)
         
     def forward(self,fm):
         B,C,H,W = fm.shape
@@ -35,11 +35,15 @@ class AttentionDownSample(torch.nn.Module):
 
 def stride_conv_modify(layer,reduce):
     layer.downsample = AttentionDownSample(2,layer.out_channels,reduce)
+    layer.padding = 'same'
+    layer.stride = (1,1)
+    del layer.static_padding
     def forward(self,x):
-        x = torch.nn.functional.conv2d(x, self.weight, self.bias, 1, 'same', self.dilation, self.groups)
+        x = torch.nn.functional.conv2d(x, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
         x = self.downsample(x)
         return x
-    layer.forward = forward
+    forward = forward.__get__(layer, layer.__class__)
+    setattr(layer, 'forward', forward)
     
 def stride_block_modify(block):
     num_squeezed_channels = max(1, int(block._block_args.input_filters * block._block_args.se_ratio))
