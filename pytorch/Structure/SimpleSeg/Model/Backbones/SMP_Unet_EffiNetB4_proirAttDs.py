@@ -81,7 +81,7 @@ def modify_MBConvBlock_ResProp(MBConvBlock):
             x = self._bn1(x)
             x = self._swish(x)
             if self.has_se:
-                x_squeezed = F.adaptive_avg_pool2d(x, 1)
+                x_squeezed = torch.nn.functional.adaptive_avg_pool2d(x, 1)
                 x_squeezed = self._se_reduce(x_squeezed)
                 x_squeezed = self._swish(x_squeezed)
                 x_squeezed = self._se_expand(x_squeezed)
