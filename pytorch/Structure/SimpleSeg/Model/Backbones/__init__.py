@@ -9,3 +9,5 @@ from .EfficientNet_reproduce import Unet_EfficientNetB4_reproduce
 from .SMP_Unet_EffiNetB4_AttDs import SMP_Unet_EffiNetB4_AttDs
 from .SMP_Unet_EffiNetB4_proirAttDs import SMP_Unet_EffiNetB4_proirAttDs
 from .SMP_Unet_EffiNetB4_AttRes import SMP_Unet_EffiNetB4_AttRes
+from .SMP_Unet_EffiNetB4_proirFastAttDs import SMP_Unet_EffiNetB4_proirFastAttDs
+from .SMP_Unet_EffiNetB4_Non_Pretrain import SMP_Unet_EffiNetB4_Non_Pretrain
