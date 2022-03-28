@@ -22,7 +22,7 @@ class ConverToGrid(torch.nn.Module):
         W = W//S
         fm = torch.reshape(fm,[B, C, H, S, W, S])
         fm = torch.permute(fm,[0,1,2,4,3,5])
-        fm = torch.reshape(fm,[B, H, W, C, S*S])
+        fm = torch.reshape(fm,[B, C, H, W, S*S])
         return fm
 
 class AttentionDownSample(torch.nn.Module):
@@ -42,7 +42,7 @@ class AttentionDownSample(torch.nn.Module):
         Q = self.Q(fm)
         K = self.K(fm)
         fm = self.V(fm)
-        fm = fm * self.dropout(torch.nn.Softmax(torch.sum(Q*K,dim=1,keepdim=True),dim=-1))
+        fm = fm * self.dropout(torch.nn.functional.softmax(torch.sum(Q*K,dim=1,keepdim=True),dim=-1))
         fm = torch.sum(fm,dim=-1) 
         return fm
 
