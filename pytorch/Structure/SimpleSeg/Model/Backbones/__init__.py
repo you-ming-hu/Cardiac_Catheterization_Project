@@ -11,3 +11,4 @@ from .SMP_Unet_EffiNetB4_proirAttDs import SMP_Unet_EffiNetB4_proirAttDs
 from .SMP_Unet_EffiNetB4_AttRes import SMP_Unet_EffiNetB4_AttRes
 from .SMP_Unet_EffiNetB4_proirFastAttDs import SMP_Unet_EffiNetB4_proirFastAttDs
 from .SMP_Unet_EffiNetB4_Non_Pretrain import SMP_Unet_EffiNetB4_Non_Pretrain
+from .Unet_EffNet_AttDs import Unet_EffNet_AttDs
