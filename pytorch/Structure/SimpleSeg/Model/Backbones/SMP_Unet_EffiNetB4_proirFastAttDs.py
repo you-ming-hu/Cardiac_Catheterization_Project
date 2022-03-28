@@ -30,10 +30,10 @@ class AttentionDownSample(torch.nn.Module):
         super().__init__()
         self.Q = torch.nn.Sequential(
             torch.nn.AvgPool2d(downscale,downscale),
-            torch.nn.Conv2d(in_channel,reduce,1),
+            torch.nn.Conv2d(in_channel,reduce,1,bias=False),
             Lambda(lambda fm : (fm/reduce**0.5).unsqueeze(-1)))
         self.K = torch.nn.Sequential(
-            torch.nn.Conv2d(in_channel,reduce,1),
+            torch.nn.Conv2d(in_channel,reduce,1,bias=False),
             ConverToGrid(downscale))
         self.V = ConverToGrid(downscale)
         self.dropout = torch.nn.Dropout(p=dropout_count/downscale**2,inplace=True)
