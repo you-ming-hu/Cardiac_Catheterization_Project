@@ -8,7 +8,7 @@ class SMP_Unet_EffiNetB4_Non_Pretrain(BaseBackbone):
     def __init__(self, in_channels, out_channels):
         stem = smp.Unet(
             encoder_name = 'efficientnet-b4', 
-            encoder_weights = 'imagenet', 
+            encoder_weights = None, 
             in_channels = in_channels, 
             classes = out_channels,
             activation = None,
