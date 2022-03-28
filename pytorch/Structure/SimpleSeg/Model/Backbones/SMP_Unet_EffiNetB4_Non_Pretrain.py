@@ -13,8 +13,6 @@ class SMP_Unet_EffiNetB4_Non_Pretrain(BaseBackbone):
             classes = out_channels,
             activation = None,
             aux_params = None)
-        for param in stem.parameters():
-            param.reset_parameters()
         
         non_froozen_layers = [
             stem.encoder._conv_stem,
