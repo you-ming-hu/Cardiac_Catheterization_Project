@@ -36,7 +36,7 @@ class AttentionDownSample(torch.nn.Module):
             torch.nn.Conv2d(in_channel,reduce,1,bias=False),
             ConverToGrid(downscale))
         self.V = ConverToGrid(downscale)
-        self.dropout = torch.nn.Dropout(p=dropout_count/downscale**2,inplace=True)
+        self.dropout = torch.nn.Dropout(p=dropout_count/downscale**2,inplace=False)
         
     def forward(self,fm):
         Q = self.Q(fm)

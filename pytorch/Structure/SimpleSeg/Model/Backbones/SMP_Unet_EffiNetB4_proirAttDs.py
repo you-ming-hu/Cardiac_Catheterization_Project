@@ -9,7 +9,7 @@ class AttentionDownSample(torch.nn.Module):
         self.downscale = downscale
         self.Q = torch.nn.Linear(in_channel, reduce, bias=False)
         self.K = torch.nn.Linear(in_channel, reduce, bias=False)
-        self.dropout = torch.nn.Dropout(p=dropout_count/downscale**2,inplace=True)
+        self.dropout = torch.nn.Dropout(p=dropout_count/downscale**2,inplace=False)
         
     def forward(self,fm):
         B,C,H,W = fm.shape
