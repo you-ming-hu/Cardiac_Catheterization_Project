@@ -66,10 +66,6 @@ class SMP_Unet_EffiNetB4_AttRes(BaseBackbone):
         non_froozen_layers = [
             stem.encoder._conv_stem,
             stem.encoder._bn0,
-            stem.encoder._blocks[2]._depthwise_conv.downsample,
-            stem.encoder._blocks[6]._depthwise_conv.downsample,
-            stem.encoder._blocks[10]._depthwise_conv.downsample,
-            stem.encoder._blocks[22]._depthwise_conv.downsample,
             stem.segmentation_head]
         super().__init__(stem,non_froozen_layers)
         
