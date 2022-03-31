@@ -1,3 +1,4 @@
+import collections
 class Logger:
     _editing_mode = False
     
@@ -5,8 +6,8 @@ class Logger:
         assert isinstance(name,str)
         fathers = fathers+[name]
         super().__setattr__('_fathers', fathers)
-        super().__setattr__('_contents', {})
-        super().__setattr__('_children', [])
+        super().__setattr__('_contents', collections.OrderedDict())
+        # super().__setattr__('_children', [])
         
     def __repr__(self):
         return 'Logger object: '+'.'.join(self._fathers)
@@ -14,15 +15,17 @@ class Logger:
     def __str__(self):
         new_line_str = '  \n'
         fathers_str = '.'.join(self._fathers)
-        contents_str = new_line_str.join([f'{fathers_str}.{content} = {value}' for content,value in self._contents.items()])
-        children_str = new_line_str.join([str(child) for child in self._children])
-        output = []
-        if contents_str != '':
-            output.append(contents_str)
-        if children_str != '':
-            output.append(children_str)
-        output = new_line_str.join(output)
-        return output
+        # contents_str = new_line_str.join([f'{fathers_str}.{content} = {value}' for content,value in self._contents.items()])
+        contents_str = new_line_str.join([f'{fathers_str}.{content} = {value}' if not isinstance(value,Logger) else str(value) for content,value in self._contents.items()])
+        # children_str = new_line_str.join([str(child) for child in self._children])
+        # output = []
+        # if contents_str != '':
+        #     output.append(contents_str)
+        # if children_str != '':
+        #     output.append(children_str)
+        # output = new_line_str.join(output)
+        # return output
+        return contents_str
     
     def __setattr__(self,name,value):
         if __class__._editing_mode:
@@ -43,7 +46,8 @@ class Logger:
         if __class__._editing_mode:
             assert name != 'shape'
             child = Logger(name,self._fathers)
-            self._children.append(child)
+            # self._children.append(child)
+            self._contents[name] = child
             super().__setattr__(name,child)
         else:
             raise AttributeError(f'{repr(self)}.{name} is not defined while in editing mode')
