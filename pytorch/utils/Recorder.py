@@ -12,7 +12,7 @@ class Recorder:
         self.log_path = pathlib.Path(root_path,folder_name,f'{trial_count:0>2}')
         
     def log_config(self,config):
-        text = f'CONFIG:\n  {config}'
+        text = f'CONFIG:  \n{config}'
         self.writers['train'].add_text('CONFIG',text,0)
         
     def create_metrics_and_writers(self,metrics_class,metrics_param):
