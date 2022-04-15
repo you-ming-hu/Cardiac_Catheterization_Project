@@ -1,4 +1,4 @@
-import Transform.Schedule
+import Schedule.Transform
 import albumentations as A
 
 class Base:
@@ -7,15 +7,15 @@ class Base:
     
     def set_default(self,components,schedules):
         assert isinstance(components,(list,tuple))
-        assert isinstance(schedules,(list,tuple,int,float,Transform.Schedule.Base))
+        assert isinstance(schedules,(list,tuple,int,float,Schedule.Transform.Base))
         self.default_components = components
         self.default_schedules = schedules
         
     def setup(self,transform_schedule,components,params,schedules):
         if isinstance(transform_schedule,(int,float)):
-            self.transform_schedule = Transform.Schedule.Constant(transform_schedule)
+            self.transform_schedule = Schedule.Transform.Constant(transform_schedule)
         else:
-            assert isinstance(transform_schedule,Transform.Schedule.Base)
+            assert isinstance(transform_schedule,Schedule.Transform.Base)
             self.transform_schedule = transform_schedule
         
         if isinstance(components,(list,tuple)):
@@ -31,17 +31,17 @@ class Base:
             assert params == 'default'
             self.params = [{} for _ in self.components]
         
-        if isinstance(schedules,(list,tuple,int,float,Transform.Schedule.Base)):
+        if isinstance(schedules,(list,tuple,int,float,Schedule.Transform.Base)):
             self.schedules = schedules
         else:
             assert schedules == 'default'
             self.schedules = self.default_schedules
         if isinstance(self.schedules,(int,float)):
-            self.schedules = [Transform.Schedule.Constant(self.schedules) for _ in self.components]
-        elif isinstance(self.schedules,Transform.Schedule.Base):
+            self.schedules = [Schedule.Transform.Constant(self.schedules) for _ in self.components]
+        elif isinstance(self.schedules,Schedule.Transform.Base):
             self.schedules = [self.schedules for _ in self.components]
         else:
-            self.schedules = [Transform.Schedule.Constant(s) if isinstance(s,(int,float)) else s for s in self.schedules]
+            self.schedules = [Schedule.Transform.Constant(s) if isinstance(s,(int,float)) else s for s in self.schedules]
         assert len(self.schedules) == len(self.components)
     
     def __call__(self,epoch):
