@@ -7,9 +7,9 @@ class Recorder:
         self,
         root_path,
         folder_name,
-        trial_count):
+        trial_number):
         
-        self.log_path = pathlib.Path(root_path,folder_name,f'{trial_count:0>2}')
+        self.log_path = pathlib.Path(root_path,folder_name,f'{trial_number:0>2}')
         
     def log_config(self,config):
         text = f'CONFIG:  \n{config}'
