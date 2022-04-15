@@ -126,7 +126,8 @@ predict_threshold = Config.Logging.Image.Threshold
 # create recorder
 recorder = Recorder(
     root_path = Config.Logging.RootPath,
-    folder_name = Config.Logging.FolderName)
+    folder_name = Config.Logging.FolderName,
+    trial_count=Config.Logging.TrialCount)
 recorder.create_metrics_and_writers(metrics_class,metrics_params)
 recorder.log_config(Config)
 
