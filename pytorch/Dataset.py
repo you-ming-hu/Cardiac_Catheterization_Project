@@ -5,6 +5,7 @@ from albumentations.pytorch.transforms import ToTensorV2
 import pathlib
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
+import pydicom
 
 class Dataset(torch.utils.data.Dataset):
     def __init__(self,data_pairs,image_rgb,transform,dtype):
@@ -201,8 +202,10 @@ class TrainDataLoader:
 
 
 class Images(torch.utils.data.Dataset):
-    def __init__(self,folder,image_rgb,preprocess,dtype):
-        self.images_path = sorted(list(x.as_posix() for x in pathlib.Path(folder).iterdir()))
+    # def __init__(self,folder,image_rgb,preprocess,dtype):
+    def __init__(self,dicom_path,image_rgb,preprocess,dtype):
+        # self.images_path = sorted(list(x.as_posix() for x in pathlib.Path(folder).iterdir()))
+        self.images = pydicom.read_file(dicom_path).pixel_array
         self.image_rgb = image_rgb
         if dtype == 'float' or dtype == float:
             self.preprocess = A.Compose([
@@ -216,32 +219,38 @@ class Images(torch.utils.data.Dataset):
                 ToTensorV2(p=1)],p=1)
         
     def __getitem__(self,index):
-        image_path = self.images_path[index]
+        # image_path = self.images_path[index]
+        # if self.image_rgb:
+        #     image = cv2.imread(image_path)
+        #     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        # else:
+        #     image = cv2.imread(image_path,cv2.IMREAD_GRAYSCALE)
+        image = self.images[index]
         if self.image_rgb:
-            image = cv2.imread(image_path)
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        else:
-            image = cv2.imread(image_path,cv2.IMREAD_GRAYSCALE)
-
+            image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
         image = self.preprocess(image=image)['image']
         return image
     
     def __len__(self):
-        return len(self.images_path)
+        # return len(self.images_path)
+        return self.images.shape[0]
     
 class ImagesLoader:
     def __init__(
         self,
-        folder,
+        # folder,
+        dicom_path,
         batch_size,
         image_rgb,
         preprocess,
         dtype,
         num_workers,
         pin_memory,
-        prefetch_factor):
+        prefetch_factor,
+        device):
         
-        images = Images(folder,image_rgb,preprocess,dtype)
+        # images = Images(folder,image_rgb,preprocess,dtype)
+        images = Images(dicom_path,image_rgb,preprocess,dtype)
         
         self.loader = torch.utils.data.DataLoader(
             images,
@@ -251,64 +260,57 @@ class ImagesLoader:
             num_workers=num_workers,
             pin_memory=pin_memory,
             prefetch_factor=prefetch_factor)
+        self.device = device
         
     def __iter__(self):
+        self.loader = iter(self.loader)
         return self
     def __next__(self):
-        pass
-        
+        batch_data = next(self.loader)
+        batch_data = batch_data.to(self.device)
+        return batch_data
 
 class FolderLoader:
-    def __init__(self,root):
-        self.folders = list(pathlib.Path(root).iterdir())
-    
-    
-    def to(self,device):
-        pass
-
-
-
-
-class DataLoader:
     def __init__(
         self,
-        purpose,
-        images_path,
-        masks_path,
-        image_rgb,
-        transform,
-        preprocess,
+        root,
         batch_size,
-        drop_last,
-        shuffle,
+        image_rgb,
+        preprocess,
+        dtype,
         num_workers,
         pin_memory,
-        prefetch_factor,
-        dtype):
+        prefetch_factor):
         
-        self.purpose = purpose
-        self.data_pairs = list(zip(images_path,masks_path))
-        self.image_rgb = image_rgb
-        self.transform = transform
-        if preprocess == None:
-            preprocess = A.NoOp(p=1)
-        self.preprocess = preprocess
+        # self.folders = pathlib.Path(root).iterdir()
+        self.dicoms = pathlib.Path(root).rglob('*.dcm')
         self.batch_size = batch_size
-        self.drop_last = drop_last
-        self.shuffle = shuffle
+        self.image_rgb = image_rgb
+        self.preprocess = preprocess
+        self.dtype = dtype
         self.num_workers = num_workers
         self.pin_memory = pin_memory
         self.prefetch_factor = prefetch_factor
-        self.dtype = dtype
     
-    def __len__(self):
-        return len(self.data_pairs)
-        
-    def __call__(self,epoch):
-        if self.transform == None:
-            transform = A.Sequential([self.preprocess],p=1)
-        else:
-            transform = A.Sequential([self.transform(epoch),self.preprocess],p=1)
-        dataset = Dataset(self.data_pairs,self.image_rgb,transform,self.dtype)
-        
-        return dataloader
+    def __iter__(self):
+        return self
+    
+    def __next__(self):
+        dicom_path = next(self.dicoms)
+        folder_name = dicom_path.parent.name
+        image_loader = ImagesLoader(
+            # folder=next(self.folders),
+            dicom_path=dicom_path,
+            batch_size = self.batch_size,
+            image_rgb = self.image_rgb,
+            preprocess = self.preprocess,
+            dtype = self.dtype,
+            num_workers = self.num_workers,
+            pin_memory = self.pin_memory,
+            prefetch_factor = self.prefetch_factor,
+            device = self.device)
+        return folder_name,image_loader
+    
+    def to(self,device):
+        self.device = device
+        return self
