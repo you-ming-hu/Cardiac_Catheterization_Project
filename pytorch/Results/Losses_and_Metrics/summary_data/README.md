@@ -13,8 +13,8 @@ There are 5 folders under each of the 'epoch only' and 'step_included' folder an
     1. all : ([ResNet, DenseNet, Efficient] x [Pretrained, NonPretrained] + [AttDs])x[01-10 trials] + [Efficient Pretrained, AttDs] x [11-20 additional trails]
     2. 7_models_10_trails : ([ResNet, DenseNet, Efficient] x [Pretrained, NonPretrained] + [AttDs])x[01-10 trials]
     3. 6_models_10_trails : ([ResNet, DenseNet, Efficient] x [Pretrained, NonPretrained])x[01-10 trials]
-    4. EfficientNet_vs_AttDs_20_trials : [Efficient Pretrained, AttDs] x [1-20 trails]
-    5. EfficientNet_vs_AttDs_10_trials : [Efficient Pretrained, AttDs] x [1-10 trails]
+    4. EfficientNet_vs_AttDs_20_trials : [Efficient Pretrained, AttDs] x [01-20 trails]
+    5. EfficientNet_vs_AttDs_10_trials : [Efficient Pretrained, AttDs] x [01-10 trails]
         
 All these 5 folders has 2 csv files:
     
