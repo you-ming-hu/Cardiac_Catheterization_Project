@@ -1,4 +1,3 @@
 *.pyc
 **/.ipynb_checkpoints
-pytorch/logging_old_backup/
-pytorch/Logging/
+summary/
