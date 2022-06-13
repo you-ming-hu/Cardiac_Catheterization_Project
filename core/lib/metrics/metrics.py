@@ -80,6 +80,7 @@ class BaseBinaryAccuracy(BaseMetric):
         output = torch.sigmoid(output)
         output = output >= self.threshold
         metric = output == label
+        metric = metric.astype(float)
         if self.reduce_dim is not None:
             metric = metric.mean(axis=self.reduce_dim)
         return metric
