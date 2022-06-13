@@ -43,7 +43,7 @@ class DiceAccuracy(BaseMetric):
     
     def call(self,output,label):
         output = torch.sigmoid(output)
-        output = (output >= self.threshold).astype(label.dtype)
+        output = (output >= self.threshold).type(label.dtype)
         intersection = (output * label).sum(axis=[1,2])
         metric = (2.*intersection + self.smoothing)/(output.sum(axis=[1,2]) + label.sum(axis=[1,2]) + self.smoothing)
         return metric
@@ -80,7 +80,7 @@ class BaseBinaryAccuracy(BaseMetric):
         output = torch.sigmoid(output)
         output = output >= self.threshold
         metric = output == label
-        metric = metric.astype(float)
+        metric = metric.type(torch.float)
         if self.reduce_dim is not None:
             metric = metric.mean(axis=self.reduce_dim)
         return metric
