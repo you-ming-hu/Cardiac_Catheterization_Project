@@ -29,11 +29,8 @@ torch.manual_seed(Config.AutoGenerate.RandomSeed.ModelWeight)
 model = core.utils.get_model(Config)
 model = model.to(device)
 
-optimizer = core.utils.get_optimizer(Config)
-optimizer = optimizer(model.parameters())
-# scheduler
-lr_scheduler = core.utils.get_lr_scheduler(Config)
-lr_scheduler = lr_scheduler(optimizer)
+optimizer = core.utils.get_optimizer(model,Config)
+lr_scheduler = core.utils.get_lr_scheduler(optimizer,Config)
 
 stage_recorders = core.utils.get_stage_recorders(Config)
 aug_prob_recorder = core.utils.get_aug_prob_recorder(Config)
