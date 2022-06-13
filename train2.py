@@ -66,7 +66,7 @@ for _ in range(training_epochs):
         batch_data = {k:v.to(device) if not isinstance(v,list) else v for k,v in batch_data.items()}
         with autocast(enabled=amp_scale_train,dtype=torch.float32):
             output = model(batch_data['image'])
-            hybrid_loss,loss_composition = loss_func(output,batch_data,step = training_step_count, steps_per_epoch = steps_per_epoch)
+            hybrid_loss,loss_composition = loss_func(output,batch_data, step_count = training_step_count, steps_per_epoch = steps_per_epoch)
             metrics = metric_func(output,batch_data)
 
         if hybrid_loss is not None:
@@ -127,8 +127,8 @@ for _ in range(training_epochs):
             batch_data = {k:v.to(device) if not isinstance(v,list) else v for k,v in batch_data.items()}
             with torch.no_grad():
                 with autocast(enabled=amp_scale_train,dtype=torch.float32):
-                    output = model(batch_data)
-                    hybrid_loss,loss_composition = loss_func(output,batch_data,step = training_step_count, steps_per_epoch = steps_per_epoch)
+                    output = model(batch_data['image'])
+                    hybrid_loss,loss_composition = loss_func(output,batch_data,step_count = training_step_count, steps_per_epoch = steps_per_epoch)
                     metrics = metric_func(output,batch_data)
             
             loss_buffer.add(loss_composition)
