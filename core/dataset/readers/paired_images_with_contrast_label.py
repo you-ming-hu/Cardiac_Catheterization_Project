@@ -27,6 +27,8 @@ class TrainingDataReader:
         prev_image = self.read_image(images[0])
         curr_image = self.read_image(images[1])
         mask = self.read_mask(images[1])
+        if mask.shape != curr_image.shape[1:]:
+            mask = cv2.resize(mask,curr_image.shape[1:])
         contrast_exist = 0 if (mask==0).all() else 1
         sample_id = images[1].parent.parent.name
         frame_id = images[1].with_suffix('').name
