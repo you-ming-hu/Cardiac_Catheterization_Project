@@ -63,7 +63,7 @@ for _ in range(training_epochs):
     stage_recorder = stage_recorders[stage]
     model.train()
     for batch_data in dataloader:
-        batch_data = {k:v.to(device) for k,v in batch_data.items()}
+        batch_data = {k:v.to(device) if not isinstance(v,list) else v for k,v in batch_data.items()}
         with autocast(enabled=amp_scale_train,dtype=torch.float32):
             output = model(batch_data['image'])
             hybrid_loss,loss_composition = loss_func(output,batch_data,step = training_step_count, steps_per_epoch = steps_per_epoch)
@@ -124,7 +124,7 @@ for _ in range(training_epochs):
         stage_recorder = stage_recorders[stage]
         
         for batch_data in dataloader:
-            batch_data = {k:v.to(device) for k,v in batch_data.items()}
+            batch_data = {k:v.to(device) if not isinstance(v,list) else v for k,v in batch_data.items()}
             with torch.no_grad():
                 with autocast(enabled=amp_scale_train,dtype=torch.float32):
                     output = model(batch_data)
