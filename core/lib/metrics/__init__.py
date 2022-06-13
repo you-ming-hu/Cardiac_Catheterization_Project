@@ -13,7 +13,7 @@ class MetricFunction:
         
     def __call__(self,output,data):
         metric = {}
-        for m in self.self.metric_funcs:
+        for m in self.metric_funcs:
             acc_count, acc_metric = m(output,data)
             metric[m.name] = {'acc_count':acc_count.item(),'acc_value':acc_metric.item()}
         return metric
