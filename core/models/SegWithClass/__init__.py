@@ -19,16 +19,9 @@ class Model(torch.nn.Module):
     
     def predict(self,x):
         with torch.no_grad():
-            output = self.backbone(x)
-            
-            mask = self.seg_head(output['seg'])
-            mask = torch.sigmoid(mask)
-            
-            contrast_exist = self.classify_head(output['classify'])
-            contrast_exist = torch.sigmoid(contrast_exist)
-            
-        return {'mask':mask,'contrast_exist':contrast_exist}
-    
+            output = self(x)
+        return self.inference(output)
+
     def inference(self,output):
         with torch.no_grad():
             mask = output['mask']
@@ -36,5 +29,6 @@ class Model(torch.nn.Module):
             
             contrast_exist = output['contrast_exist']
             contrast_exist = torch.sigmoid(contrast_exist)
-            
+        mask = mask.cpu().numpy()
+        contrast_exist = contrast_exist.cpu().numpy()
         return {'mask':mask,'contrast_exist':contrast_exist}
