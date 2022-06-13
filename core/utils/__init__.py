@@ -113,7 +113,7 @@ def update_stage_result(dataloader,hybrid_loss,loss_composition,metrics):
     
 def record_inference(Config,training_epoch_count,stage,batch_data,output):
     inf = getattr(inference,Config.Model.Task)
-    save_path = pathlib.path(Config.Record.RootPath,'results',f'{training_epoch_count:0>3}',stage)
+    save_path = pathlib.Path(Config.Record.RootPath,'results',f'{training_epoch_count:0>3}',stage)
     inf(save_path,batch_data,output)
     
     
