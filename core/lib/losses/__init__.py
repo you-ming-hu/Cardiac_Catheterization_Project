@@ -24,7 +24,7 @@ class LossFunction:
                 w = 1
             else:
                 w = l.schedule(step_count,steps_per_epoch)
-            loss_composition[l.name] = {'acc_count':acc_count,'acc_loss':acc_loss,'weight':w}
+            loss_composition[l.name] = {'acc_count':acc_count.item(),'acc_loss':acc_loss.item(),'weight':w}
             
             acc_hybrid_count += acc_count
             acc_hybrid_loss += acc_loss*w

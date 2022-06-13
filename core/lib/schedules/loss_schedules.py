@@ -8,21 +8,21 @@ class BaseSchedule:
     def call(self,step_count,steps_per_epoch):
         raise NotImplementedError
 
-class Constant:
+class Constant(BaseSchedule):
     def __init__(self,v):
         self.v = v
     def call(self,step_count,steps_per_epoch):
         return self.v
     
-class WarmUp:
+class WarmUp(BaseSchedule):
     def __init__(self,warmup_epochs,max_weight):
         pass
     
     
-class Zip:
+class Zip(BaseSchedule):
     def __init__(self,):
         pass
     
-class LinearDecay:
+class LinearDecay(BaseSchedule):
     def __init__(self):
         pass

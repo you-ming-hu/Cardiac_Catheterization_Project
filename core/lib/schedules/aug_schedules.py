@@ -1,17 +1,17 @@
-class Base:
+class BaseSchedule:
     def __call__(self,epoch):
         assert isinstance(epoch,int)
         return self.call(epoch)
     def call(self,epoch):
         raise NotImplementedError
 
-class Constant(Base):
+class Constant(BaseSchedule):
     def __init__(self,p):
         self.p = p
     def call(self,epoch):
         return self.p
     
-class WarmUp(Base):
+class WarmUp(BaseSchedule):
     def __init__(self,start_p,max_p,warmup_epochs):
         self.start_p = start_p
         self.max_p = max_p
