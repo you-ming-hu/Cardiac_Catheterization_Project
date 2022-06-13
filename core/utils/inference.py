@@ -3,6 +3,10 @@ import pathlib
 
 def SegWithClass(save_path,batch_data,output):
     batch_size = batch_data['image'].shape[0]
+    batch_data['mask'] = batch_data['mask'].cpu().numpy()
+    batch_data['contrast_exist'] = batch_data['contrast_exist'].cpu().numpy()
+    batch_data['image'] = batch_data['image'].cpu().numpy()
+    
     for i in range(batch_size):
         mask = batch_data['mask'][i]
         contrast_exist = batch_data['contrast_exist'][i]
