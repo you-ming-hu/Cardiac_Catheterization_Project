@@ -1,5 +1,6 @@
 # import torch
 import segmentation_models_pytorch as smp
+import torch
 
 class Backbone(smp.Unet):
     def __init__(
@@ -7,7 +8,6 @@ class Backbone(smp.Unet):
         encoder_name,
         encoder_weights,
         in_channels,
-        activation,
         segmentation_dim,
         classfy_dim):
         
@@ -16,11 +16,14 @@ class Backbone(smp.Unet):
             encoder_weights = encoder_weights, 
             in_channels = in_channels, 
             classes = segmentation_dim,
-            activation = activation,
+            activation = None,
             aux_params = {'classes':classfy_dim})
+        self.mish  = torch.nn.Mish()
             
-    def forwrd(self,x):
-        seg, classify  = super()(x)
+    def forward(self,x):
+        seg, classify  = super().forward(x)
+        seg = self.mish(seg)
+        classify = self.mish(classify)
         return {'seg':seg,'classify':classify}
     
     
@@ -28,13 +31,11 @@ def create_module(
     encoder_name,
     encoder_weights,
     in_channels,
-    activation,
     segmentation_dim,
     classfy_dim):
     return Backbone(
         encoder_name,
         encoder_weights,
         in_channels,
-        activation,
         segmentation_dim,
         classfy_dim)

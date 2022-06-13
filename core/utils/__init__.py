@@ -6,6 +6,8 @@ from .configuration import  initialize_config, get_config
 from .recorder import StageRecorder,LossCompositionRecorder,LearningRateRecorder,AugProbRecorder
 from .dataloaders import TrainingDataLoader
 
+from . import inference
+
 import core.dataset.preprocess
 import core.dataset.postprocess
 import core.dataset.augmentation
@@ -108,5 +110,10 @@ def update_stage_result(dataloader,hybrid_loss,loss_composition,metrics):
         else:
             contents[n] = 'None'
     dataloader.set_postfix(**contents)
+    
+def record_inference(Config,training_epoch_count,stage,batch_data,output):
+    inf = getattr(inference,Config.Model.Task)
+    save_path = pathlib.path(Config.Record.RootPath,'results',f'{training_epoch_count:0>3}',stage)
+    inf(save_path,batch_data,output)
     
     

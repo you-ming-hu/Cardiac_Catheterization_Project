@@ -85,13 +85,13 @@ class BaseBinaryAccuracy(BaseMetric):
         return metric
     
 class BinaryAccuracy(BaseBinaryAccuracy):
-    def __init__(self,subject,weights):
-        super().__init__(subject,weights,None)
+    def __init__(self,subject,weights,threshold):
+        super().__init__(subject,weights,threshold,None)
         
 class BinaryAccuracy1D(BaseBinaryAccuracy):
-    def __init__(self,subject,weights):
-        super().__init__(subject,weights,[1])
+    def __init__(self,subject,weights,threshold):
+        super().__init__(subject,weights,threshold,[1])
         
 class BinaryAccuracy2D(BaseBinaryAccuracy):
-    def __init__(self,subject,weights):
-        super().__init__(subject,weights,[1,2])
+    def __init__(self,subject,weights,threshold):
+        super().__init__(subject,weights,threshold,[1,2])

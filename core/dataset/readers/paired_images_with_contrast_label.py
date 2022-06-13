@@ -28,8 +28,9 @@ class TrainingDataReader:
         curr_image = self.read_image(images[1])
         mask = self.read_mask(images[1])
         contrast_exist = 0 if (mask==0).all() else 1
-        return dict(curr_image=curr_image, prev_image=prev_image, mask=mask, contrast_exist=contrast_exist)
-    
+        sample_id = images[1].parent.parent.name
+        frame_id = images[1].with_suffix('').name
+        return dict(curr_image=curr_image, prev_image=prev_image, mask=mask, contrast_exist=contrast_exist, sample_id=sample_id, frame_id=frame_id)
     
 class FromDicom:
     def __init__(self,dicom_path,preprocess):

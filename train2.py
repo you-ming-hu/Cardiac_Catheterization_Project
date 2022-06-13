@@ -1,5 +1,6 @@
 import random
 import numpy as np
+import pathlib
 
 import torch
 from torch.cuda.amp import autocast, GradScaler
@@ -83,7 +84,7 @@ for _ in range(training_epochs):
         metric_buffer.add(metrics)
         
         training_step_count += 1
-        training_data_count += batch_data['batch_size']
+        training_data_count += batch_data['image'].shape[0]
         
         if training_step_count % steps_per_record == 0:
             hybrid_loss,loss_composition = loss_buffer.result()
@@ -112,6 +113,9 @@ for _ in range(training_epochs):
     
     loss_buffer.clear()
     metric_buffer.clear()
+    
+    if Config.Record.SaveModelWeights:
+        torch.save(model.state_dict(),pathlib.path(Config.Record.RootPath,'model_weights',f'{training_epoch_count:0>3}'))
                 
     #validation
     model.eval()
@@ -136,6 +140,9 @@ for _ in range(training_epochs):
             hybrid_loss,loss_composition = loss_buffer.result()
             metrics = metric_buffer.result()
             core.utils.update_stage_result(dataloader,hybrid_loss,loss_composition,metrics)
+            
+            output = model.inference(output)
+            core.utils.record_inference(Config,training_epoch_count,stage,batch_data,output)
         
         stage_recorder.write_loss_result(training_data_count,hybrid_loss,loss_composition)
         stage_recorder.write_metric_result(training_data_count,metrics)
