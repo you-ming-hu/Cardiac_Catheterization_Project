@@ -25,7 +25,7 @@ def SegWithClass(save_path,batch_data,output):
         
         plt.imsave(save_path.joinpath('prev.png'),prev_img,cmap='gray')
         plt.imsave(save_path.joinpath('curr.png'),curr_img,cmap='gray')
-        plt.imsave(save_path.joinpath(f'mask_{contrast_exist:d}.png'),mask,cmap='gray')
+        plt.imsave(save_path.joinpath(f'mask_{int(contrast_exist):d}.png'),mask,cmap='gray')
         
         plt.imsave(save_path.joinpath(f'pred_{pred_contrast_exist:.4f}.png'),pred_mask,cmap='gray')
         
