@@ -56,7 +56,7 @@ for _ in range(training_epochs):
     stage = stages[0]
     print('='*50,f'{stage:0>2}','='*50)
     dataloader = dataloaders[stage](training_epoch_count)
-    aug_prob_recorder.write_aug_prob(training_data_count,*dataloader.get_aug_probs(training_epoch_count))
+    aug_prob_recorder.write_aug_prob(training_data_count,*dataloaders[stage].get_aug_probs(training_epoch_count))
     
     loss_buffer = loss_buffers[stage]
     metric_buffer = metric_buffers[stage]
