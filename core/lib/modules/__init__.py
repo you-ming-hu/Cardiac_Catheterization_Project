@@ -15,4 +15,5 @@ class BinaryClassifyHead(torch.nn.Sequential):
         
     def forward(self,x):
         x = super().forward(x)
+        x = torch.squeeze(x,dim=1)
         return x
