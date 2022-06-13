@@ -97,6 +97,8 @@ for _ in range(training_epochs):
             
             loss_buffer.clear()
             metric_buffer.clear()
+            
+            break
     
     if training_step_count % steps_per_record != 0:
         hybrid_loss,loss_composition = loss_buffer.result()
@@ -112,7 +114,7 @@ for _ in range(training_epochs):
     metric_buffer.clear()
     
     if Config.Record.SaveModelWeights:
-        torch.save(model.state_dict(),pathlib.path(Config.Record.RootPath,'model_weights',f'{training_epoch_count:0>3}'))
+        torch.save(model.state_dict(),pathlib.Path(Config.Record.RootPath,'model_weights',f'{training_epoch_count:0>3}'))
                 
     #validation
     model.eval()
