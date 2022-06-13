@@ -19,11 +19,11 @@ def SegWithClass(save_path,batch_data,output):
         save_path = pathlib.Path(save_path,sample_id,frame_id)
         save_path.mkdir(parents=True,exist_ok=True)
         
-        plt.imsave(save_path.joinpath('prev'),prev_img,cmp='gray')
-        plt.imsave(save_path.joinpath('curr'),curr_img,cmp='gray')
-        plt.imsave(save_path.joinpath(f'mask_{contrast_exist:d}'),mask,cmp='gray')
+        plt.imsave(save_path.joinpath('prev'),prev_img,cmap='gray')
+        plt.imsave(save_path.joinpath('curr'),curr_img,cmap='gray')
+        plt.imsave(save_path.joinpath(f'mask_{contrast_exist:d}'),mask,cmap='gray')
         
-        plt.imsave(save_path.joinpath(f'pred_{pred_contrast_exist:.4f}'),pred_mask,cmp='gray')
+        plt.imsave(save_path.joinpath(f'pred_{pred_contrast_exist:.4f}'),pred_mask,cmap='gray')
         
         
         
