@@ -97,6 +97,9 @@ for _ in range(training_epochs):
             
             loss_buffer.clear()
             metric_buffer.clear()
+            
+            if training_step_count == steps_per_record*5:
+                break
     
     if training_step_count % steps_per_record != 0:
         hybrid_loss,loss_composition = loss_buffer.result()
