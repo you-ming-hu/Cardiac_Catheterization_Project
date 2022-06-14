@@ -3,7 +3,7 @@ import torch
 from sklearn.model_selection import train_test_split
 
 from .configuration import  initialize_config, get_config
-from .recorder import StageRecorder,LossCompositionRecorder,LearningRateRecorder,AugProbRecorder
+from .recorder import ModelRecorder,StageRecorder,LossCompositionRecorder,LearningRateRecorder,AugProbRecorder,ConfigRecorder
 from .dataloaders import TrainingDataLoader
 
 from . import inference
@@ -47,11 +47,6 @@ def get_train_dataloaders(Config,keep_original=False):
         Auto.StepsPerEpoch = len(dataloaders[train_stages[0]])
     return dataloaders
 
-def get_model(Config):
-    task = getattr(core.models,Config.Model.Task)
-    model = task.Model(**Config.Model.Param)
-    return model
-
 def get_loss_funcs(Config):
     formated_param = parse_format(Config.Training.Losses)
     loss_func = core.lib.losses.LossFuncionParser(formated_param)
@@ -71,6 +66,14 @@ def get_loss_buffers(Config):
     
 def get_metric_buffers(Config):
     return {stage:core.lib.metrics.MetricBuffer(Config.AutoGenerate.MetricNames) for stage in Config.AutoGenerate.TrainStages}
+
+def get_model(Config):
+    task = getattr(core.models,Config.Model.Task)
+    model = task.Model(**Config.Model.Param)
+    return model
+
+def get_model_recorder(Config):
+    return ModelRecorder(Config.Record.SaveModelWeights,Config.Record.RootPath)
 
 def get_stage_recorders(Config):
     return {stage:StageRecorder(stage,Config.Record.RootPath) for stage in Config.AutoGenerate.TrainStages}
@@ -92,6 +95,9 @@ def get_lr_scheduler(optimizer,Config):
     lr_scheduler = getattr(core.lib.schedules.lr_schedules,Config.Training.LearningRateSchedule.Name)
     lr_scheduler = lr_scheduler(steps_per_epoch=Config.AutoGenerate.StepsPerEpoch,**Config.Training.LearningRateSchedule.Param)
     return lr_scheduler(optimizer)
+
+def save_config(Config):
+    ConfigRecorder(Config.Record.RootPath).save(Config)
 
 def update_stage_result(dataloader,hybrid_loss,loss_composition,metrics):
     contents = {}
@@ -116,4 +122,5 @@ def record_inference(Config,training_epoch_count,stage,batch_data,output):
     save_path = pathlib.Path(Config.Record.RootPath,'results',f'{training_epoch_count:0>3}',stage)
     inf(save_path,batch_data,output)
     
+
     

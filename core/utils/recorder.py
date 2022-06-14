@@ -1,5 +1,7 @@
 import pathlib
-        
+import pickle
+import torch
+
 from torch.utils.tensorboard.writer import SummaryWriter
 
 class StageRecorder:
@@ -44,5 +46,22 @@ class AugProbRecorder:
         for n,p in probs.items():
             self.writers[n].add_scalar('augmentation_prob',p,training_data_count)
         self.aug_prob_writer.add_scalar('augmentation_prob',aug_prob,training_data_count)
+        
+class ConfigRecorder:
+    def __init__(self,save_root):
+        self.save_root = pathlib.Path(save_root)
+    def save(self,Config):
+        self.save_root.mkdir(parents=True)
+        pickle.dump(Config,self.save_root.joinpath('config.pkl').open('wb'))
+        SummaryWriter(self.save_root.joinpath('record').as_posix()).add_text('Config',str(Config),0)
+        
+class ModelRecorder:
+    def __init__(self,active,save_root):
+        self.active = active
+        self.save_root = pathlib.Path(save_root,'model_weights')
+    def save(self,model,epoch_count):
+        if self.active:
+            self.save_root.mkdir(parents=True,exist_ok=True)
+            torch.save(model.state_dict(),self.save_root.joinpath(f'{epoch_count:0>3}.pt'))
             
         

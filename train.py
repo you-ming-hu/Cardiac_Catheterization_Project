@@ -1,10 +1,10 @@
 import random
 import numpy as np
 import pathlib
-import pickle
 
 import torch
 from torch.cuda.amp import autocast, GradScaler
+from torch.utils.tensorboard.writer import SummaryWriter
 
 import core.utils
 
@@ -28,6 +28,7 @@ metric_buffers = core.utils.get_metric_buffers(Config)
 torch.manual_seed(Config.AutoGenerate.RandomSeed.ModelWeight)
 model = core.utils.get_model(Config)
 model = model.to(device)
+model_recorder = core.utils.get_model_recorder(Config)
 
 optimizer = core.utils.get_optimizer(model,Config)
 lr_scheduler = core.utils.get_lr_scheduler(optimizer,Config)
@@ -37,9 +38,7 @@ aug_prob_recorder = core.utils.get_aug_prob_recorder(Config)
 loss_composition_recorder = core.utils.get_loss_composition_recorder(Config)
 learning_rate_recorder = core.utils.get_learning_rate_recorder(Config)
 
-save_config_path = pathlib.Path(Config.Record.RootPath)
-save_config_path.mkdir(parents=True)
-pickle.dump(Config,save_config_path.joinpath('config.pkl').open('wb'))
+core.utils.save_config(Config)
 
 stages = Config.AutoGenerate.TrainStages
 steps_per_epoch = Config.AutoGenerate.StepsPerEpoch
@@ -115,10 +114,7 @@ for _ in range(training_epochs):
     loss_buffer.clear()
     metric_buffer.clear()
     
-    if Config.Record.SaveModelWeights:
-        model_save_path = pathlib.Path(Config.Record.RootPath,'model_weights')
-        model_save_path.mkdir(parents=True,exist_ok=True)
-        torch.save(model.state_dict(),model_save_path.joinpath(f'{training_epoch_count:0>3}.pt'))
+    model_recorder.save(model,training_epoch_count)
                 
     #validation
     model.eval()
