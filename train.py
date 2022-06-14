@@ -113,7 +113,7 @@ for _ in range(training_epochs):
     
     if Config.Record.SaveModelWeights:
         model_save_path = pathlib.Path(Config.Record.RootPath,'model_weights')
-        model_save_path.mkdir(parents=True)
+        model_save_path.mkdir(parents=True,exist_ok=True)
         torch.save(model.state_dict(),model_save_path.joinpath(f'{training_epoch_count:0>3}.pt'))
                 
     #validation
