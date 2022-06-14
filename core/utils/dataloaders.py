@@ -28,10 +28,10 @@ class TrainingDataLoader:
         
         if stage == 0:
             batch_size=Config.Training.Dataset.Train.BatchSize
-            shuffle=True,
+            shuffle=True
         else:
             batch_size=Config.Training.Dataset.Val.BatchSize
-            shuffle=False,
+            shuffle=False
             
         num_workers=Config.Training.Dataset.NumWorkers
         pin_memory=Config.Training.Dataset.PinMemory
