@@ -4,7 +4,7 @@ from torch.utils.tensorboard.writer import SummaryWriter
 
 class StageRecorder:
     def __init__(self,stage,rootpath):
-        rootpath = pathlib.Path(rootpath)
+        rootpath = pathlib.Path(rootpath,'record')
         self.loss_writer = SummaryWriter(rootpath.joinpath('loss',stage).as_posix())
         self.metric_writer = SummaryWriter(rootpath.joinpath('metric',stage).as_posix())
     def write_loss_result(self,training_data_count,hybrid_loss,loss_composition):
@@ -20,7 +20,7 @@ class StageRecorder:
     
 class LossCompositionRecorder:
     def __init__(self,names,rootpath):
-        rootpath = pathlib.Path(rootpath)
+        rootpath = pathlib.Path(rootpath,'record')
         self.writers = {n:SummaryWriter(rootpath.joinpath('loss_composition',n).as_posix()) for n in names}
     def write_loss_composition(self,training_data_count,loss_composition):
         for n,l in loss_composition.items():
@@ -30,14 +30,14 @@ class LossCompositionRecorder:
 
 class LearningRateRecorder:
     def __init__(self,rootpath):
-        rootpath = pathlib.Path(rootpath)
-        self.writer = SummaryWriter(rootpath.joinpath('').as_posix())
+        rootpath = pathlib.Path(rootpath,'record')
+        self.writer = SummaryWriter(rootpath.joinpath('learning_rate').as_posix())
     def write_learning_rate(self,training_data_count,lr):
         self.writer.add_scalar('learning_rate',lr,training_data_count)
         
 class AugProbRecorder:
     def __init__(self,names,rootpath):
-        rootpath = pathlib.Path(rootpath)
+        rootpath = pathlib.Path(rootpath,'record')
         self.writers = {n:SummaryWriter(rootpath.joinpath('augmentation_prob',n).as_posix()) for n in names}
         self.aug_prob_writer = SummaryWriter(rootpath.joinpath('augmentation_prob','Aug_prob').as_posix())
     def write_aug_prob(self,training_data_count,aug_prob,probs):

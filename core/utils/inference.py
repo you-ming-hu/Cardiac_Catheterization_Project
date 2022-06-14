@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import pathlib
 
-def SegWithClass(save_path,batch_data,output):
+def SegWithClass(save_root_path,batch_data,output):
     batch_size = batch_data['image'].shape[0]
     batch_data['mask'] = batch_data['mask'].cpu().numpy()
     batch_data['contrast_exist'] = batch_data['contrast_exist'].cpu().numpy()
@@ -20,7 +20,7 @@ def SegWithClass(save_path,batch_data,output):
         pred_mask = output['mask'][i]
         pred_contrast_exist =  output['contrast_exist'][i]
         
-        save_path = pathlib.Path(save_path,sample_id,frame_id)
+        save_path = pathlib.Path(save_root_path,sample_id,frame_id)
         save_path.mkdir(parents=True,exist_ok=True)
         
         plt.imsave(save_path.joinpath('prev.png'),prev_img,cmap='gray')
