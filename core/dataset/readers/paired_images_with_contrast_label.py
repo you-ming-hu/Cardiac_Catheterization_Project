@@ -7,7 +7,7 @@ class TrainingDataReader:
         self.preprocess = preprocess
         self.images = []
         for f in data_folders:
-            self.images.extend(more_itertools.pairwise(f.joinpath('images').iterdir()))
+            self.images.extend(more_itertools.pairwise(sorted(f.joinpath('images').iterdir())))
             
     def read_image(self,image_path):
         image = cv2.imread(image_path.as_posix())
