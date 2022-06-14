@@ -51,7 +51,7 @@ class ConfigRecorder:
     def __init__(self,save_root):
         self.save_root = pathlib.Path(save_root)
     def save(self,Config):
-        self.save_root.mkdir(parents=True)
+        self.save_root.mkdir(parents=True,exist_ok=True)
         pickle.dump(Config,self.save_root.joinpath('config.pkl').open('wb'))
         SummaryWriter(self.save_root.joinpath('record').as_posix()).add_text('Config',str(Config),0)
         
