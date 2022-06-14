@@ -1,6 +1,7 @@
 import random
 import numpy as np
 import pathlib
+import pickle
 
 import torch
 from torch.cuda.amp import autocast, GradScaler
@@ -8,7 +9,6 @@ from torch.cuda.amp import autocast, GradScaler
 import core.utils
 
 Config = core.utils.get_config()
-
 # create gpu device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # cudnn reproducibility
@@ -36,6 +36,10 @@ stage_recorders = core.utils.get_stage_recorders(Config)
 aug_prob_recorder = core.utils.get_aug_prob_recorder(Config)
 loss_composition_recorder = core.utils.get_loss_composition_recorder(Config)
 learning_rate_recorder = core.utils.get_learning_rate_recorder(Config)
+
+save_config_path = pathlib.Path(Config.Record.RootPath)
+save_config_path.mkdir(parents=True)
+pickle.dump(Config,save_config_path.joinpath('config.pkl').open('wb'))
 
 stages = Config.AutoGenerate.TrainStages
 steps_per_epoch = Config.AutoGenerate.StepsPerEpoch
